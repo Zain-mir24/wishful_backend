@@ -5,7 +5,8 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Param
+  Param,
+  Patch,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 @Controller('Products')
@@ -43,10 +44,26 @@ export class ProductController {
     const data = this.productService.getProducts();
     return data;
   }
-  
-  @Get(":id")
-  getProductById(@Param('id') prodId:string) {
+
+  @Get(':id')
+  getProductById(@Param('id') prodId: string) {
     const data = this.productService.getProductById(prodId);
+    return data;
+  }
+
+  @Patch(':id')
+  updateProduct(
+    @Param('id') prodId: string,
+    @Body('title') title: string,
+    @Body('description') description: string,
+    @Body('Price') price: number,
+  ) {
+    let payload={
+      title,
+      description,
+      price
+    }
+    const data = this.productService.updateProduct(prodId,payload);
     return data;
   }
 }
