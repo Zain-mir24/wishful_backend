@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -6,6 +6,7 @@ import { userDto } from './dto/user-login.dto';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Request } from 'express';
+import { ApiResponse } from '@nestjs/swagger';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService, readonly userService:UsersService) {}
@@ -23,8 +24,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiResponse({status:HttpStatus.OK,description:"Loggedin"})
   create(@Body() userData:userDto) {
-    return this.authService.create(userData);
+    return this.authService.login(userData);
   }
 
   @Get()

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { userDto } from './dto/user-login.dto';
+import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
 
@@ -26,7 +27,7 @@ export class AuthService {
     const refreshToken = jwt.sign(
       { user_email: userData.email },
       'your-secret-refresh-key',
-      { expiresIn: '1h' },
+      { expiresIn: "17h" },
     );
 
     userData.accessToken = accessToken;
@@ -58,28 +59,39 @@ export class AuthService {
     return getUser;
   }
 
-  async verify(token:string) {
+  async verify(token: string) {
     try {
       const verify = jwt.verify(token, process.env.SECRET_KEY);
-    if (verify) {
+      if (verify) {
         const email = verify.user_email;
         let userData = await this.usersService.findByEmail(email);
-        userData.verified=true;
-        const update=await this.usersService.update(userData.id,userData)
+        userData.verified = true;
+        const update = await this.usersService.update(userData.id, userData);
         return update;
-      }
-      else{
-        return 'Token expireed'
+      } else {
+        return 'Token expireed';
       }
     } catch (e) {
-      return e
+      return e;
     }
   }
- 
-  async login(userData:userDto){
 
-  } 
-  
+  async login(userData: userDto) {
+    try {
+      let user = await this.usersService.findByEmail(userData.email);
+      if(user){
+        console.log(user.password,userData.password)
+        const validate= await bcrypt.compare(userData.password,user.password)
+        console.log(validate)
+        return {
+          MESSAGE:"SUCCESSFULLY LOGGED IN",
+          AccessToken:user.accessToken,
+          RefreshToken:user.refreshToken
+        };
+      }
+    } catch (e) {}
+  }
+
   findAll() {
     return `This action returns all auth`;
   }
