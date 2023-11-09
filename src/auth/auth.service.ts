@@ -27,7 +27,7 @@ export class AuthService {
     const refreshToken = jwt.sign(
       { user_email: userData.email },
       'your-secret-refresh-key',
-      { expiresIn: "17h" },
+      { expiresIn: '17h' },
     );
 
     userData.accessToken = accessToken;
@@ -79,17 +79,56 @@ export class AuthService {
   async login(userData: userDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
-      if(user){
-        console.log(user.password,userData.password)
-        const validate= await bcrypt.compare(userData.password,user.password)
-        console.log(validate)
-        return {
-          MESSAGE:"SUCCESSFULLY LOGGED IN",
-          AccessToken:user.accessToken,
-          RefreshToken:user.refreshToken
-        };
+      if (user) {
+        const validate = await bcrypt.compare(userData.password, user.password);
+        console.log(validate);
+        if (validate) {
+          const accessToken = jwt.sign(
+            { user_email: userData.email },
+            process.env.SECRET_KEY,
+            { expiresIn: '1h' },
+          );
+          const refreshToken = jwt.sign(
+            { user_email: userData.email },
+            process.env.SECRET_REFRESH_KEY,
+            { expiresIn: '1h' },
+          );
+          user.accessToken = accessToken;
+          user.refreshToken = refreshToken;
+          await this.usersService.update(user.id, user);
+
+          return {
+            MESSAGE: 'SUCCESSFULLY LOGGED IN',
+            User:user
+          };
+        } else {
+          return 'INCORRECT CREDENTAIL';
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      return 'INCORRECT CREDENTAIL';
+    }
+  }
+
+  async generateRefresh(token) {
+    try {
+      const verify = jwt.verify(token, process.env.SECRET_REFRESH_KEY);
+      if (!verify) {
+        return 'Login again:  Refresh token expired';
+      }
+      const email = verify.user_email;
+      let userData = await this.usersService.findByEmail(email);
+      const accessToken = jwt.sign(
+        { user_email: userData.email },
+        process.env.SECRET_KEY,
+        { expiresIn: '1h' },
+      );
+      userData.accessToken = accessToken;
+      await this.usersService.update(userData.id, userData);
+      return accessToken;
+    } catch (e) {
+      return e
+    }
   }
 
   findAll() {

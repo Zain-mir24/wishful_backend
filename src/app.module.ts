@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer,RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './Products/product.module';
@@ -12,12 +12,12 @@ import { PaymentModule } from './payment/payment.module';
 import { PaymentService } from './payment/payment.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingService } from './mailing/mailing.service';
+import { LoggerMiddleware } from './common/middleware/login.middleware';
+
 @Module({
   imports: [
-    ConfigModule.forRoot( ),
-    TypeOrmModule.forRoot({...typeOrmConfig,
-      autoLoadEntities: true,
-    }),
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({ ...typeOrmConfig, autoLoadEntities: true }),
     MailerModule.forRoot({
       transport: {
         service: 'Gmail',
@@ -28,16 +28,24 @@ import { MailingService } from './mailing/mailing.service';
       },
       defaults: {
         from: process.env.MY_EMAIL,
-      }
+      },
     }),
     ProductsModule,
     OrdersModule,
     UsersModule,
     AuthModule,
     PaymentModule,
-    
   ],
   controllers: [AppController],
   providers: [AppService, PaymentService, MailingService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes(
+        { path: 'users', method: RequestMethod.GET },
+        { path: 'users/:id', method: RequestMethod.POST },
+      );
+  }
+}
