@@ -13,7 +13,8 @@ import { PaymentService } from './payment/payment.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingService } from './mailing/mailing.service';
 import { LoggerMiddleware } from './common/middleware/login.middleware';
-
+import { RolesGuard } from './common/guard/roles.guard';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -37,7 +38,10 @@ import { LoggerMiddleware } from './common/middleware/login.middleware';
     PaymentModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PaymentService, MailingService],
+  providers: [AppService, PaymentService, MailingService,  {
+    provide: APP_GUARD,
+    useClass: RolesGuard,
+  },],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

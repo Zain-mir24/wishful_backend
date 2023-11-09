@@ -27,6 +27,9 @@ export class User {
   @Column()
   refreshToken: string ;
 
+  @Column()
+  role:string;
+
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }

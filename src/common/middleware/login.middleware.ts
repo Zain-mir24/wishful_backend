@@ -7,9 +7,10 @@ export class LoggerMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
       let authToken = req.headers.authorization;
-        jwt.verify(authToken, process.env.SECRET_KEY);
-      next();
+       const verify= jwt.verify(authToken, process.env.SECRET_KEY);
+     if(verify) next();
     } catch (e) {
+      console.log(e)
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
   }

@@ -18,14 +18,15 @@ export class AuthService {
   }
 
   async signUp(userData) {
+    console.log(userData);
     const accessToken = jwt.sign(
-      { user_email: userData.email },
+      { user_email: userData.email, role: userData.role },
       'your-secret-key',
       { expiresIn: '1h' },
     );
 
     const refreshToken = jwt.sign(
-      { user_email: userData.email },
+      { user_email: userData.email, role: userData.role },
       'your-secret-refresh-key',
       { expiresIn: '17h' },
     );
@@ -84,12 +85,12 @@ export class AuthService {
         console.log(validate);
         if (validate) {
           const accessToken = jwt.sign(
-            { user_email: userData.email },
+            { user_email: userData.email, role: user.role },
             process.env.SECRET_KEY,
             { expiresIn: '1h' },
           );
           const refreshToken = jwt.sign(
-            { user_email: userData.email },
+            { user_email: userData.email, role: user.role },
             process.env.SECRET_REFRESH_KEY,
             { expiresIn: '1h' },
           );
@@ -99,7 +100,7 @@ export class AuthService {
 
           return {
             MESSAGE: 'SUCCESSFULLY LOGGED IN',
-            User:user
+            User: user,
           };
         } else {
           return 'INCORRECT CREDENTAIL';
@@ -119,7 +120,7 @@ export class AuthService {
       const email = verify.user_email;
       let userData = await this.usersService.findByEmail(email);
       const accessToken = jwt.sign(
-        { user_email: userData.email },
+        { user_email: userData.email, role: userData.role },
         process.env.SECRET_KEY,
         { expiresIn: '1h' },
       );
@@ -127,7 +128,7 @@ export class AuthService {
       await this.usersService.update(userData.id, userData);
       return accessToken;
     } catch (e) {
-      return e
+      return e;
     }
   }
 

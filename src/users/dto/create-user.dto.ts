@@ -6,4 +6,5 @@ export class CreateUserDto {
     readonly verified:boolean;
     readonly accessToken?:string;
     readonly refreshToken?:string;
+    readonly role:string;
 }

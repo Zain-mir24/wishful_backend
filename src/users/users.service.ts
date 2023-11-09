@@ -13,7 +13,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<any> {
-    const { username, password, email, phone_no, accessToken, refreshToken } =
+    const { username, password, email, phone_no, accessToken, refreshToken ,role} =
       createUserDto;
 
     const checkEmail = await this.userRepository.findOne({
@@ -42,6 +42,7 @@ export class UsersService {
 
       user.refreshToken = refreshToken;
 
+      user.role = role;
       const myUser = await this.userRepository.save(user);
 
       return myUser;
