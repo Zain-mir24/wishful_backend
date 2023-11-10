@@ -29,7 +29,7 @@ export class RolesGuard implements CanActivate {
         const userRoles = decodedToken.role;
   
         // Check if the user has the required role
-        const hasRole = userRoles===requiredRole[0];
+        const hasRole = requiredRole.includes(userRoles);
   
         if (!hasRole) {
           console.log(`Access denied. User does not have the required role: ${requiredRole}`);
