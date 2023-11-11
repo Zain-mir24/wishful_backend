@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('orders')
-export class Order extends BaseEntity {
+@Entity('product')
+export class product extends BaseEntity {
   @PrimaryGeneratedColumn({
     comment: 'The order unique identifier',
   })
@@ -15,8 +15,8 @@ export class Order extends BaseEntity {
   @Column()
   description: string;
 
-  @Column()
-  Category: string;
+  // @Column()
+  // Category: string;
 
   @Column()
   price: number;

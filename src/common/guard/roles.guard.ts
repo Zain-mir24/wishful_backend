@@ -12,7 +12,7 @@ export class RolesGuard implements CanActivate {
         'roles',
         context.getHandler(),
       );
-      console.log(requiredRole)
+      
       if (!requiredRole) {
         // No role required, access is granted
         return true;
@@ -20,11 +20,10 @@ export class RolesGuard implements CanActivate {
 
       const request = context.switchToHttp().getRequest();
       const token = request.headers['authorization'];
-      console.log(token);
+     
       try {
         const decodedToken = jwt.verify(token,process.env.SECRET_KEY);
   
-        console.log(decodedToken)
         // Assuming user roles are stored in the 'roles' property of the token payload
         const userRoles = decodedToken.role;
   
@@ -46,7 +45,7 @@ export class RolesGuard implements CanActivate {
     } catch (e) {
       return {
         statusCode: 403,
-        message: 'Forbidden resource',
+        message: 'This user is not allowed to access this resource',
         error: 'Forbidden',
       };
     }

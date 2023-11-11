@@ -19,7 +19,7 @@ export class UsersService {
     const checkEmail = await this.userRepository.findOne({
       where: { email: email },
     });
-    if (checkEmail) {
+    if (checkEmail&& checkEmail.verified) {
       return 'User email already exist';
     } else {
       const salt = await bcrypt.genSalt();

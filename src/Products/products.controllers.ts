@@ -7,12 +7,18 @@ import {
   HttpStatus,
   Param,
   Patch,
+  UseGuards
 } from '@nestjs/common';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/common/roles.decorator';
+import { Role } from 'src/common/role.enum';
 import { ProductsService } from './products.service';
 @Controller('Products')
+@UseGuards(RolesGuard)
 export class ProductController {
   constructor(private readonly productService: ProductsService) {}
   @Post()
+  @Roles(Role.Admin)
   addProduct(
     @Body('title') productTitle: string,
     @Body('description') descriptionTitle: string,
@@ -40,7 +46,8 @@ export class ProductController {
   }
 
   @Get()
-  getProduct() {
+  @Roles(Role.Admin,Role.User)
+   getProduct() {
     const data = this.productService.getProducts();
     return data;
   }
@@ -58,12 +65,12 @@ export class ProductController {
     @Body('description') description: string,
     @Body('Price') price: number,
   ) {
-    let payload={
+    let payload = {
       title,
       description,
-      price
-    }
-    const data = this.productService.updateProduct(prodId,payload);
+      price,
+    };
+    const data = this.productService.updateProduct(prodId, payload);
     return data;
   }
 }
