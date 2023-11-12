@@ -86,12 +86,12 @@ export class AuthService {
           const accessToken = jwt.sign(
             { user_email: userData.email, role: user.role },
             process.env.SECRET_KEY,
-            { expiresIn: '1h' },
+            { expiresIn: '1d' },
           );
           const refreshToken = jwt.sign(
             { user_email: userData.email, role: user.role },
             process.env.SECRET_REFRESH_KEY,
-            { expiresIn: '1h' },
+            { expiresIn: '1d' },
           );
           user.accessToken = accessToken;
           user.refreshToken = refreshToken;
@@ -102,7 +102,7 @@ export class AuthService {
             User: user,
           };
         } else {
-          return 'INCORRECT CREDENTAIL';
+          return 'INCORRECT CREDENTAIL'; 
         }
       }
       return "USER NOT VERIFIED"

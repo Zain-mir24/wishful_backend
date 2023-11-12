@@ -7,30 +7,28 @@ import {
   HttpStatus,
   Param,
   Patch,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
 import { Role } from 'src/common/role.enum';
 import { ProductsService } from './products.service';
+import { productDto } from './dtos/Products.dto';
+import { ApiOkResponse } from '@nestjs/swagger';
 @Controller('Products')
 @UseGuards(RolesGuard)
 export class ProductController {
   constructor(private readonly productService: ProductsService) {}
+  @ApiOkResponse({
+    description: 'Product Created Successfully',
+    type: productDto,
+  })
   @Post()
   @Roles(Role.Admin)
-  addProduct(
-    @Body('title') productTitle: string,
-    @Body('description') descriptionTitle: string,
-    @Body('Price') priceTitle: number,
-  ): any {
+  addProduct(@Body() product: productDto): any {
     try {
-      const generatedId = this.productService.insertProduct(
-        productTitle,
-        descriptionTitle,
-        priceTitle,
-      );
-      return { id: generatedId };
+      const generatedId = this.productService.insertProduct(product);
+      return generatedId;
     } catch (e) {
       throw new HttpException(
         {
@@ -46,8 +44,8 @@ export class ProductController {
   }
 
   @Get()
-  @Roles(Role.Admin,Role.User)
-   getProduct() {
+  @Roles(Role.Admin, Role.User)
+  getProduct() {
     const data = this.productService.getProducts();
     return data;
   }
@@ -59,18 +57,9 @@ export class ProductController {
   }
 
   @Patch(':id')
-  updateProduct(
-    @Param('id') prodId: string,
-    @Body('title') title: string,
-    @Body('description') description: string,
-    @Body('Price') price: number,
-  ) {
-    let payload = {
-      title,
-      description,
-      price,
-    };
-    const data = this.productService.updateProduct(prodId, payload);
+  @Roles(Role.Admin)
+  updateProduct(@Param('id') prodId: string, @Body() product: productDto) {
+    const data = this.productService.updateProduct(prodId, product);
     return data;
   }
 }

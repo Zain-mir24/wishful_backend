@@ -28,8 +28,11 @@ export class UsersService {
       where: { email: email },
     });
     let userData = checkEmail;
+
     if (checkEmail && checkEmail.verified) {
+
       return 'User email already exist';
+      
     } 
     else if (checkEmail && !checkEmail.verified) {
       userData.accessToken = accessToken;
