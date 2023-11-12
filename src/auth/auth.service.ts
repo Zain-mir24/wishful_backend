@@ -18,16 +18,15 @@ export class AuthService {
   }
 
   async signUp(userData) {
-    console.log(userData);
     const accessToken = jwt.sign(
       { user_email: userData.email, role: userData.role },
-      'your-secret-key',
+      process.env.SECRET_KEY,
       { expiresIn: '1h' },
     );
 
     const refreshToken = jwt.sign(
       { user_email: userData.email, role: userData.role },
-      'your-secret-refresh-key',
+      process.env.SECRET_REFRESH_KEY,
       { expiresIn: '17h' },
     );
 
@@ -80,7 +79,7 @@ export class AuthService {
   async login(userData: userDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
-      if (user) {
+      if (user && user.verified) {
         const validate = await bcrypt.compare(userData.password, user.password);
         console.log(validate);
         if (validate) {
@@ -106,6 +105,7 @@ export class AuthService {
           return 'INCORRECT CREDENTAIL';
         }
       }
+      return "USER NOT VERIFIED"
     } catch (e) {
       return 'INCORRECT CREDENTAIL';
     }

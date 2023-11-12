@@ -1,4 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Entity()
@@ -17,19 +19,27 @@ export class User {
 
   @Column()
   password: string;
-  
+
   @Column()
   verified: boolean | null;
 
   @Column()
-  accessToken: string ;
+  accessToken: string;
 
   @Column()
-  refreshToken: string ;
+  refreshToken: string;
 
   @Column()
-  role:string;
+  role: string;
 
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
+  public updated_at: Date;
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }

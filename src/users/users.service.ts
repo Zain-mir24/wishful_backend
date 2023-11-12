@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UsersService {
@@ -13,15 +14,33 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<any> {
-    const { username, password, email, phone_no, accessToken, refreshToken ,role} =
-      createUserDto;
+    const {
+      username,
+      password,
+      email,
+      phone_no,
+      accessToken,
+      refreshToken,
+      role,
+    } = createUserDto;
 
     const checkEmail = await this.userRepository.findOne({
       where: { email: email },
     });
-    if (checkEmail&& checkEmail.verified) {
+    let userData = checkEmail;
+    if (checkEmail && checkEmail.verified) {
       return 'User email already exist';
-    } else {
+    } 
+    else if (checkEmail && !checkEmail.verified) {
+      userData.accessToken = accessToken;
+
+      userData.refreshToken = refreshToken;
+     
+      await this.userRepository.update(checkEmail.id, userData);
+
+      return checkEmail;
+    }
+     else {
       const salt = await bcrypt.genSalt();
 
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -65,7 +84,7 @@ export class UsersService {
     });
   }
   update(id: number, updateUserDto: UpdateUserDto) {
-    return  this.userRepository.update(id,updateUserDto);;
+    return this.userRepository.update(id, updateUserDto);
   }
 
   async remove(id: number) {

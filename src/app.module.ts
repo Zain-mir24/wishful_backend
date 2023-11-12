@@ -15,6 +15,7 @@ import { MailingService } from './mailing/mailing.service';
 import { LoggerMiddleware } from './common/middleware/login.middleware';
 import { RolesGuard } from './common/guard/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { CategoryModule } from './category/category.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -36,6 +37,7 @@ import { APP_GUARD } from '@nestjs/core';
     UsersModule,
     AuthModule,
     PaymentModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, PaymentService, MailingService,  {
