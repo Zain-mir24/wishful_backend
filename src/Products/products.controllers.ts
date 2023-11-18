@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   UseGuards,
+  Query 
 } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
@@ -15,6 +16,9 @@ import { Role } from 'src/common/role.enum';
 import { ProductsService } from './products.service';
 import { productDto } from './dtos/Products.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { PageDto } from 'src/common/page.dto';
+import { PageMetaDto } from 'src/common/page.meta.dto';
+import { PageOptionsDto } from 'src/common/dtos';
 @Controller('Products')
 @UseGuards(RolesGuard)
 export class ProductController {
@@ -45,13 +49,14 @@ export class ProductController {
 
   @Get()
   @Roles(Role.Admin, Role.User)
-  getProduct() {
-    const data = this.productService.getProducts();
+  getProduct(@Query() pageOptionsDto:PageOptionsDto) {
+    const data = this.productService.getProducts(pageOptionsDto);
     return data;
   }
 
   @Get(':id')
-  getProductById(@Param('id') prodId: string) {
+  @Roles(Role.Admin,Role.User)
+  getProductById(@Param('id') prodId: number) {
     const data = this.productService.getProductById(prodId);
     return data;
   }

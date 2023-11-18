@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { product } from './entities/product.entities';
 import { productDto } from './dtos/Products.dto';
+import { PageDto } from 'src/common/page.dto';
+import { PageMetaDto } from 'src/common/page.meta.dto';
+import { PageOptionsDto } from 'src/common/dtos';
 @Injectable()
 export class ProductsService {
   constructor(
@@ -24,14 +27,36 @@ export class ProductsService {
       data: addProduct,
     };
   }
-  async getProducts() {
-    const getProduct = await this.productRepository.find();
-    return getProduct;
+  async getProducts(
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<productDto>> {
+    
+    const queryBuilder = this.productRepository.createQueryBuilder("product");
+    
+    queryBuilder
+      .orderBy("product.id", pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.pageSize);
+
+      const itemCount = await queryBuilder.getCount();
+      const { entities } = await queryBuilder.getRawAndEntities();
+  
+      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+  
+      return new PageDto(entities, pageMetaDto);
   }
-  getProductById(ProductId: string) {
-    const product = this.findProduct(ProductId)[0];
-    return { ...product };
+
+  async getProductById(ProductId: number) {
+    const getProduct = await this.productRepository.findOne({
+      where: {
+        id: ProductId,
+      },
+    });
+    return { getProduct };
   }
+
+  async getProductsByCategory() {}
+
   async updateProduct(id: string, product: productDto) {
     try {
       const update_product = await this.productRepository.update(id, product);

@@ -75,6 +75,7 @@ export class UsersService {
     return this.userRepository.find();
   }
 
+  // Getting user detail
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
