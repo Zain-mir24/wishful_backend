@@ -4,5 +4,6 @@ export class CreateOrderDto {
     readonly title:string;
     readonly address:string;
     readonly status:string;
-    readonly price:number
+    readonly price:number;
+    readonly productId:number;
 }

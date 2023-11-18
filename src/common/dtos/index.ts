@@ -34,4 +34,8 @@ export class PageOptionsDto {
   get skip(): number {
     return (this.page - 1) * this.pageSize;
   }
+
+
+  @Type(()=> String)
+  readonly search?: string;
 }

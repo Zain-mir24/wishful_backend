@@ -7,6 +7,9 @@ interface PageMetaDtoParameters {
 
 export class PageMetaDto {
   @ApiProperty()
+  readonly search:string;
+
+  @ApiProperty()
   readonly page: number;
 
   @ApiProperty()

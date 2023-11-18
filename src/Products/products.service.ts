@@ -32,7 +32,9 @@ export class ProductsService {
   ): Promise<PageDto<productDto>> {
     
     const queryBuilder = this.productRepository.createQueryBuilder("product");
-    
+    if (pageOptionsDto.search) {
+      queryBuilder.where('product.title ILIKE :searchTerm', { searchTerm: `%${pageOptionsDto.search}%` });
+    }
     queryBuilder
       .orderBy("product.id", pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
