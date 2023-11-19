@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersService } from 'src/users/users.service';
@@ -9,6 +11,9 @@ import { Auth } from './entities/auth.entity';
   imports:[TypeOrmModule.forFeature([Auth,User])],
 
   controllers: [AuthController],
-  providers: [AuthService,UsersService],
+  providers: [AuthService,UsersService,{
+    provide: APP_INTERCEPTOR,
+    useClass: ClassSerializerInterceptor,
+  }],
 })
 export class AuthModule {}

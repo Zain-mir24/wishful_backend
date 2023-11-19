@@ -4,6 +4,9 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PageOptionsDto } from 'src/common/dtos';
+import { PageDto } from 'src/common/page.dto';
+import { PageMetaDto } from 'src/common/page.meta.dto';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -27,8 +30,28 @@ export class OrdersService {
    * @returns promise of array of Orders
    */
 
-  findAll(): Promise<Order[]> {
-    return this.orderRepository.find();
+async  findAll(
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<CreateOrderDto>> {
+    const queryBuilder = this.orderRepository.createQueryBuilder('product');
+
+    if (pageOptionsDto.search) {
+      queryBuilder.where('orders.id ILIKE :searchTerm', {
+        searchTerm: `%${pageOptionsDto.search}%`,
+      });
+    }
+
+    queryBuilder
+      .orderBy('orders.id', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.pageSize);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   /**

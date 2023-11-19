@@ -27,25 +27,29 @@ export class ProductsService {
       data: addProduct,
     };
   }
+  
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
-    
-    const queryBuilder = this.productRepository.createQueryBuilder("product");
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+
     if (pageOptionsDto.search) {
-      queryBuilder.where('product.title ILIKE :searchTerm', { searchTerm: `%${pageOptionsDto.search}%` });
+      queryBuilder.where('product.title ILIKE :searchTerm', {
+        searchTerm: `%${pageOptionsDto.search}%`,
+      });
     }
+
     queryBuilder
-      .orderBy("product.id", pageOptionsDto.order)
+      .orderBy('product.id', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.pageSize);
 
-      const itemCount = await queryBuilder.getCount();
-      const { entities } = await queryBuilder.getRawAndEntities();
-  
-      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
-  
-      return new PageDto(entities, pageMetaDto);
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async getProductById(ProductId: number) {
@@ -73,13 +77,6 @@ export class ProductsService {
   }
 
   private findProduct(ProductId: string) {
-    // const productIndex = this.products.findIndex(
-    //   (prod) => prod.id === ProductId,
-    // );
-    // const product = this.products[productIndex];
-    // if (!product) {
-    //   throw new NotFoundException();
-    // }
-    // return [product, productIndex];
+
   }
 }

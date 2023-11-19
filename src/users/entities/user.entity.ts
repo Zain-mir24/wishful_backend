@@ -1,9 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-
+import { SerializeOptions } from '@nestjs/common/serializer';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Exclude } from 'class-transformer';
 
 @Entity()
+@SerializeOptions({ excludeExtraneousValues: true })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,6 +20,7 @@ export class User {
   phone_no: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column()

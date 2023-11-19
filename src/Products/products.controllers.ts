@@ -16,8 +16,6 @@ import { Role } from 'src/common/role.enum';
 import { ProductsService } from './products.service';
 import { productDto } from './dtos/Products.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { PageDto } from 'src/common/page.dto';
-import { PageMetaDto } from 'src/common/page.meta.dto';
 import { PageOptionsDto } from 'src/common/dtos';
 @Controller('Products')
 @UseGuards(RolesGuard)

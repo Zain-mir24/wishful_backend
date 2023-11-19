@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   HttpStatus,
+  UseInterceptors,ClassSerializerInterceptor
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -18,6 +19,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Request } from 'express';
 import { ApiResponse } from '@nestjs/swagger';
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

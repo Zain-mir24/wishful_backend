@@ -7,11 +7,6 @@ export class Order extends BaseEntity {
   })
   id: number;
 
-  @Column({
-    type: 'varchar',
-  })
-  title: string;
-
   @Column()
   address: string;
 
@@ -20,4 +15,10 @@ export class Order extends BaseEntity {
 
   @Column()
   price: number;
+
+  @Column('simple-array')
+  productId:number[];
+
+  @Column()
+  userId:number;
 }
