@@ -7,7 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query
+  Query,
+  HttpCode
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -29,7 +30,7 @@ export class OrdersController {
   }
 
   @Get()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.User)
   findAll(@Query() pageOptionsDto:PageOptionsDto) {
     return this.ordersService.findAll(pageOptionsDto);
   }
@@ -39,9 +40,12 @@ export class OrdersController {
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
   }
+  // controller to get all orders against a user
+
 
   @Patch(':id')
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.User)
+  @HttpCode(200) 
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(+id, updateOrderDto);
   }
