@@ -30,7 +30,7 @@ export class User {
   accessToken: string;
 
   @Column()
-  refreshToken: string;
+  refreshToken?: string;
 
   @Column()
   role: string;

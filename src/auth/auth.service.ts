@@ -3,7 +3,7 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { userDto } from './dto/user-login.dto';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import * as jwt from 'jsonwebtoken';
 
 import { MailerService } from '@nestjs-modules/mailer';
@@ -97,17 +97,18 @@ export class AuthService {
           user.refreshToken = refreshToken;
           await this.usersService.update(user.id, user);
 
+          delete user.password
           return {
             MESSAGE: 'SUCCESSFULLY LOGGED IN',
             User: user,
           };
         } else {
-          return 'INCORRECT CREDENTAIL'; 
+          return 'INCORRECT CREDENTIAL'; 
         }
       }
       return "USER NOT VERIFIED"
     } catch (e) {
-      return 'INCORRECT CREDENTAIL';
+      return 'INCORRECT CREDENTIAL';
     }
   }
 
