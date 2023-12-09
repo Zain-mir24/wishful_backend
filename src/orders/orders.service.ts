@@ -4,15 +4,20 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageOptionsDto } from 'src/common/dtos';
-import { PageDto } from 'src/common/page.dto';
-import { PageMetaDto } from 'src/common/page.meta.dto';
-import { orderSuccess } from './types';
+import { PageOptionsDto } from '../common/dtos';
+import { PageDto } from '../common/page.dto';
+import { PageMetaDto } from '../common/page.meta.dto';
+import { orderSuccess, OrderResponse } from './types';
+import { UsersService } from '../users/users.service';
+import { ProductsService } from '../Products/products.service';
+import { Exception } from 'handlebars';
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    private readonly usersService: UsersService,
+    private readonly productsService: ProductsService,
   ) {}
 
   /**
@@ -63,13 +68,54 @@ export class OrdersService {
   }
 
   /**
-   * this function is used to get order detail and products in a specific order
+   * this function is used to get order detail
    * @param id is type of number, which represent the id of Order.
    * @returns promise of Order
    */
 
-  findOne(id: number) {
-    return this.orderRepository.findOneBy({ id });
+  async findOne(id: number) {
+    try {
+      let result: OrderResponse = {
+        user: {
+          username: '',
+          email: '',
+          phone_no: '',
+        },
+        orderDetails: {
+          address: '',
+          status: '',
+          price: 0,
+        },
+        productDetails: [],
+      };
+      const getOrderDetails = await this.orderRepository.findOneBy({ id });
+      const { userId, productId } = getOrderDetails;
+      
+      let orderDetailModified = {
+        address: getOrderDetails.address,
+        status: getOrderDetails.status,
+        price: getOrderDetails.price,
+      };
+      // Find user id
+
+      let [userData, productDetails] = await Promise.all([
+        this.usersService.findOne(userId),
+        this.productsService.findProductsByIds(productId),
+      ]);
+
+      console.log(userData)
+      result.user = {
+        username: userData?.username,
+        email: userData?.email,
+        phone_no: userData?.phone_no,
+      };
+      result.productDetails = productDetails;
+      result.orderDetails = orderDetailModified;
+      return result;
+    } catch (e) {
+      console.log(e);
+      throw new Exception('error', e);
+    }
   }
 
   /**

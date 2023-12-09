@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { product } from './entities/product.entities';
 import { productDto } from './dtos/Products.dto';
-import { PageDto } from 'src/common/page.dto';
-import { PageMetaDto } from 'src/common/page.meta.dto';
-import { PageOptionsDto } from 'src/common/dtos';
+import { PageDto } from '../common/page.dto';
+import { PageMetaDto } from '../common/page.meta.dto';
+import { PageOptionsDto } from '../common/dtos';
 @Injectable()
 export class ProductsService {
   constructor(
@@ -27,7 +27,7 @@ export class ProductsService {
       data: addProduct,
     };
   }
-  
+
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
@@ -63,6 +63,17 @@ export class ProductsService {
 
   async getProductsByCategory() {}
 
+  async findProductsByIds(ids): Promise<product[]> {
+    const productIds = ids.map((id) => parseInt(id, 10));
+
+    let getData = await this.productRepository
+      .createQueryBuilder('product')
+      .where('product.id IN (:...productIds)', { productIds })
+      .getMany();
+
+    return getData;
+  }
+
   async updateProduct(id: string, product: productDto) {
     try {
       const update_product = await this.productRepository.update(id, product);
@@ -76,7 +87,5 @@ export class ProductsService {
     }
   }
 
-  private findProduct(ProductId: string) {
-
-  }
+  private findProduct(ProductId: string) {}
 }

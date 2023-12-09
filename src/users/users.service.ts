@@ -76,8 +76,8 @@ export class UsersService {
   }
 
   // Getting user detail
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    return this.userRepository.findOneBy({ id });
   }
 
   findByEmail(email: string) {
