@@ -9,4 +9,6 @@ export class productDto{
     price: number;
     @ApiProperty()
     categoryId: number
+
 }
+

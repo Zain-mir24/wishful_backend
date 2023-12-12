@@ -16,6 +16,7 @@ import { LoggerMiddleware } from './common/middleware/login.middleware';
 import { RolesGuard } from './common/guard/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { CategoryModule } from './category/category.module';
+import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -31,6 +32,9 @@ import { CategoryModule } from './category/category.module';
       defaults: {
         from: process.env.MY_EMAIL,
       },
+    }), 
+    MulterModule.register({
+      dest: './assets', // Specify the destination folder
     }),
     ProductsModule,
     OrdersModule,

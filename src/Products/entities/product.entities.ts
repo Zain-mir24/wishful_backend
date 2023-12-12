@@ -20,4 +20,6 @@ export class product extends BaseEntity {
 
   @Column()
   price: number;
+  @Column({ nullable: true })
+  image?: string;
 }

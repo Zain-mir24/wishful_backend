@@ -8,7 +8,9 @@ import {
   Param,
   Patch,
   UseGuards,
-  Query 
+  Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
@@ -17,6 +19,8 @@ import { ProductsService } from './products.service';
 import { productDto } from './dtos/Products.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/dtos';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 @Controller('Products')
 @UseGuards(RolesGuard)
 export class ProductController {
@@ -27,9 +31,25 @@ export class ProductController {
   })
   @Post()
   @Roles(Role.Admin)
-  addProduct(@Body() product: productDto): any {
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './assets',
+        filename: (req, file, cb) => {
+          const fileNameSplit = file.originalname.split('.');
+          const fileTxt = fileNameSplit[fileNameSplit.length - 1];
+          cb(null, `${Date.now()}.${fileTxt}`);
+        },
+      }),
+    }),
+  )
+  addProduct(
+    @Body() product: productDto,
+    @UploadedFile() image: Express.Multer.File,
+  ): any {
     try {
-      const generatedId = this.productService.insertProduct(product);
+      console.log(image, 'IMAGE');
+      const generatedId = this.productService.insertProduct(product,image?.filename);
       return generatedId;
     } catch (e) {
       throw new HttpException(
@@ -47,13 +67,13 @@ export class ProductController {
 
   @Get()
   @Roles(Role.Admin, Role.User)
-  getProduct(@Query() pageOptionsDto:PageOptionsDto) {
+  getProduct(@Query() pageOptionsDto: PageOptionsDto) {
     const data = this.productService.getProducts(pageOptionsDto);
     return data;
   }
 
   @Get(':id')
-  @Roles(Role.Admin,Role.User)
+  @Roles(Role.Admin, Role.User)
   getProductById(@Param('id') prodId: number) {
     const data = this.productService.getProductById(prodId);
     return data;

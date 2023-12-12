@@ -6,6 +6,7 @@ import { productDto } from './dtos/Products.dto';
 import { PageDto } from '../common/page.dto';
 import { PageMetaDto } from '../common/page.meta.dto';
 import { PageOptionsDto } from '../common/dtos';
+import { Exception } from 'handlebars';
 @Injectable()
 export class ProductsService {
   constructor(
@@ -13,21 +14,27 @@ export class ProductsService {
     private readonly productRepository: Repository<product>,
   ) {}
 
-  async insertProduct(productData: productDto) {
-    let newProduct = new product();
+  //  creating product here and this is no
+  async insertProduct(productData: productDto , image?:string) {
+    try {
 
-    (newProduct.title = productData.title),
-      (newProduct.description = productData.description);
-    newProduct.price = productData.price;
-    newProduct.categoryId = productData.categoryId;
+      let newProduct = new product();
 
-    const addProduct = await this.productRepository.save(newProduct);
-    return {
-      Message: 'Product Created Successfully',
-      data: addProduct,
-    };
+      newProduct.title = productData.title;
+      newProduct.description = productData.description
+      newProduct.price = productData.price;
+      newProduct.categoryId = productData.categoryId;
+      newProduct.image=image;
+      // newProduct.image = decodedImage;
+      const addProduct = await this.productRepository.save(newProduct);
+      return {
+        Message: 'Product Created Successfully',
+        data: addProduct,
+      };
+    } catch (e) {
+      throw new Exception(e)
+    }
   }
-
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
@@ -76,6 +83,7 @@ export class ProductsService {
 
   async updateProduct(id: string, product: productDto) {
     try {
+      
       const update_product = await this.productRepository.update(id, product);
 
       return {
