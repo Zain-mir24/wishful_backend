@@ -35,6 +35,9 @@ import { MulterModule } from '@nestjs/platform-express';
     }), 
     MulterModule.register({
       dest: './assets', // Specify the destination folder
+      limits: {
+        files: 5, // Maximum number of files
+      },
     }),
     ProductsModule,
     OrdersModule,

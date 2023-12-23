@@ -5,6 +5,10 @@ import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
+import {
+  mock_user_correct_credentials_instance,
+  mock_incorrect_user_credentials_instance,
+} from './Mocks/index';
 
 jest.mock('../users/users.service');
 jest.mock('@nestjs-modules/mailer');
@@ -26,18 +30,10 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should return a token on successful login', async () => {
-    const mockUser = {
-      id: 1,
-      username: 'zainmir',
-      email: 'zainmir1000@gmail.com',
-      password: await bcrypt.hash('zain_1234', 10),
-      verified: true,
-      role: 'user',
-    };
-    // Create an instance of the User entity
-    const mockUserInstance = Object.assign(new User(), mockUser);
-    jest.spyOn(usersService, 'findByEmail').mockResolvedValue(mockUserInstance);
+  it('Successfull Login test', async () => {
+    jest
+      .spyOn(usersService, 'findByEmail')
+      .mockResolvedValue(mock_user_correct_credentials_instance);
     jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
     jest.spyOn(jwt, 'sign').mockReturnValue('fakeToken');
 
@@ -60,19 +56,10 @@ describe('AuthService', () => {
     });
   });
 
-  it('should return "USER NOT VERIFIED" when user is not verified', async () => {
-    // Create an instance of the User entity
-    const mockUser = {
-      id: 1,
-      username: 'zainmir',
-      email: 'zainmir10200@gmail.com',
-      password: await bcrypt.hash('zain_1234', 10),
-      verified: false,
-      role: 'user',
-    };
-    const mockUserInstance = Object.assign(new User(), mockUser);
-
-    jest.spyOn(usersService, 'findByEmail').mockResolvedValue(mockUserInstance);
+  it('User not verified test', async () => {
+    jest
+      .spyOn(usersService, 'findByEmail')
+      .mockResolvedValue(mock_incorrect_user_credentials_instance);
 
     const response = await service.login({
       email: 'zainmir10200@gmail.com',

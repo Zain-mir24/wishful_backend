@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
-import { updateProductDTO } from './dtos/UpdateProducts.dto';
+import { mock_product_instance ,expected_result} from './mocks';
 import { product } from './entities/product.entities';
 import { ProductsService } from './products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { PageOptionsDto } from 'src/common/dtos';
 jest.mock('../Products/products.service');
 describe('Product Service', () => {
   let prodService: ProductsService;
@@ -25,30 +26,26 @@ describe('Product Service', () => {
     prodService = module.get<ProductsService>(ProductsService);
     repositoryMock = module.get(getRepositoryToken(product));
   });
-  it('Add products with image testCase', async () => {
-    // Mock data
-    const MockProductDetail: updateProductDTO = {
-      id: 2,
-      title: 'New Product title',
-      description: 'This is the perfect description',
-      price: 2343,
-      categoryId: 1,
-      image: '232423.png',
-    };
-
-    const mockProduct = Object.assign(new product(), MockProductDetail);
-
-    const saveProduct = jest.fn().mockReturnValue(mockProduct);
+  it('Add product Successfull', async () => {
+    const saveProduct = jest.fn().mockReturnValue(mock_product_instance);
     // Call the mock function directly
     const result = saveProduct();
 
-    expect(result).toEqual({
-      id: 2,
-      title: 'New Product title',
-      description: 'This is the perfect description',
-      price: 2343,
-      categoryId: 1,
-      image: '232423.png',
-    });
+    expect(result).toEqual(expected_result);
   });
+
+  it('Get all products ',async()=>{
+
+    const mockPageOptions: PageOptionsDto = { page: 1, pageSize: 4,skip:0 };
+     // Mock the implementation of getProducts
+     (prodService.getProducts as jest.Mock).mockResolvedValue(mock_product_instance);
+    const result = await prodService.getProducts(mockPageOptions)
+    
+    // Add your assertions for the result if needed
+    expect(result).toEqual(mock_product_instance);
+
+    // Ensure that the function was called once
+    expect(prodService.getProducts).toBeCalledTimes(1);
+
+  })
 });

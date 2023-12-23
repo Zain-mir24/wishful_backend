@@ -103,7 +103,6 @@ export class OrdersService {
         this.productsService.findProductsByIds(productId),
       ]);
 
-      console.log(userData)
       result.user = {
         username: userData?.username,
         email: userData?.email,

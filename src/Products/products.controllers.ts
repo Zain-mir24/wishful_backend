@@ -11,6 +11,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
@@ -19,8 +20,10 @@ import { ProductsService } from './products.service';
 import { productDto } from './dtos/Products.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/dtos';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { PageDto } from '../common/page.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { extname } from 'path';
 @Controller('Products')
 @UseGuards(RolesGuard)
 export class ProductController {
@@ -32,39 +35,37 @@ export class ProductController {
   @Post()
   @Roles(Role.Admin)
   @UseInterceptors(
-    FileInterceptor('image', {
+    FilesInterceptor('images', 20, {
       storage: diskStorage({
         destination: './assets',
-        filename: (req, file, cb) => {
-          const fileNameSplit = file.originalname.split('.');
-          const fileTxt = fileNameSplit[fileNameSplit.length - 1];
-          cb(null, `${Date.now()}.${fileTxt}`);
+        filename: (req, file, callback) => {
+          console.log(file);
+          const name = file.originalname.split('.')[0];
+          const fileExtName = extname(file.originalname);
+          const randomName = Array(4)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          callback(null, `${name}-${randomName}${fileExtName}`);
         },
       }),
     }),
   )
   addProduct(
     @Body() product: productDto,
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ): any {
     try {
-      console.log(image, 'IMAGE');
-      const generatedId = this.productService.insertProduct(product,image?.filename);
+      const generatedId = this.productService.insertProduct(product, images);
       return generatedId;
     } catch (e) {
-      throw new HttpException(
-        {
-          status: HttpStatus.FORBIDDEN,
-          error: 'This is a custom message',
-        },
-        HttpStatus.FORBIDDEN,
-        {
-          cause: e,
-        },
-      );
+      console.log(e, 'ERRRROR');
+      return e;
     }
   }
-
+  @ApiOkResponse({
+    type: PageDto<productDto>,
+  })
   @Get()
   @Roles(Role.Admin, Role.User)
   getProduct(@Query() pageOptionsDto: PageOptionsDto) {

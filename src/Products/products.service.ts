@@ -15,26 +15,26 @@ export class ProductsService {
   ) {}
 
   //  creating product here and this is no
-  async insertProduct(productData: productDto , image?:string) {
+  async insertProduct(productData: productDto, images?: Object[]) {
     try {
+      let imagesName = [];
+      images.map((item: any) => {
+        imagesName.push(item.filename);
+      });
 
-      let newProduct = new product();
-
-      newProduct.title = productData.title;
-      newProduct.description = productData.description
-      newProduct.price = productData.price;
-      newProduct.categoryId = productData.categoryId;
-      newProduct.image=image;
-      // newProduct.image = decodedImage;
-      const addProduct = await this.productRepository.save(newProduct);
+      const addProduct = await this.productRepository.save({
+        ...productDto,
+        image: imagesName,
+      });
       return {
         Message: 'Product Created Successfully',
         data: addProduct,
       };
     } catch (e) {
-      throw new Exception(e)
+      throw new Exception(e);
     }
   }
+
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
@@ -81,9 +81,10 @@ export class ProductsService {
     return getData;
   }
 
+  // now need to alter the update product function
+
   async updateProduct(id: string, product: productDto) {
     try {
-      
       const update_product = await this.productRepository.update(id, product);
 
       return {
