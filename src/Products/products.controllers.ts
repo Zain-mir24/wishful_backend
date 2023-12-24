@@ -18,6 +18,7 @@ import { Roles } from 'src/common/roles.decorator';
 import { Role } from 'src/common/role.enum';
 import { ProductsService } from './products.service';
 import { productDto } from './dtos/Products.dto';
+import { updateProductDTO } from './dtos/UpdateProducts.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/dtos';
 import { PageDto } from '../common/page.dto';
@@ -82,8 +83,32 @@ export class ProductController {
 
   @Patch(':id')
   @Roles(Role.Admin)
-  updateProduct(@Param('id') prodId: string, @Body() product: productDto) {
-    const data = this.productService.updateProduct(prodId, product);
+  @UseInterceptors(
+    FilesInterceptor('images', 20, {
+      storage: diskStorage({
+        destination: './assets',
+        filename: (req, file, callback) => {
+          console.log(file);
+        
+            const name = file.originalname.split('.')[0];
+            const fileExtName = extname(file.originalname);
+            const randomName = Array(4)
+              .fill(null)
+              .map(() => Math.round(Math.random() * 16).toString(16))
+              .join('');
+            callback(null, `${name}-${randomName}${fileExtName}`);
+          
+        },
+      }),
+    }),
+  )
+  updateProduct(
+    @Param('id') prodId: string,
+    @Body() product: updateProductDTO,
+    @UploadedFiles() images: Array<Express.Multer.File>,
+  ) {
+    console.log(images)
+    const data = this.productService.updateProduct(+prodId, product, images);
     return data;
   }
 }

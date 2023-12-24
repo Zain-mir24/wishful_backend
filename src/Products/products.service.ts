@@ -7,6 +7,8 @@ import { PageDto } from '../common/page.dto';
 import { PageMetaDto } from '../common/page.meta.dto';
 import { PageOptionsDto } from '../common/dtos';
 import { Exception } from 'handlebars';
+import { updateProductDTO } from './dtos/UpdateProducts.dto';
+import { FileInformation } from './types';
 @Injectable()
 export class ProductsService {
   constructor(
@@ -82,11 +84,42 @@ export class ProductsService {
   }
 
   // now need to alter the update product function
+  // Furst check that if i already have the incoming filename then donot add it but if its all new then add it into image array in db or creeate new array
 
-  async updateProduct(id: string, product: productDto) {
+  async updateProduct(
+    id: number,
+    product: updateProductDTO,
+    images: FileInformation[],
+  ) {
     try {
-      const update_product = await this.productRepository.update(id, product);
+      let new_product = product;
+      let latestImages = [];
+      const existingProduct = await this.productRepository.findOneBy({ id });
+      if (!existingProduct) {
+        return {
+          Message: 'Product not found',
+          Data: null,
+        };
+      }
+      if (product.previous_images && product.previous_images.length > 0) {
+        product.previous_images.map((item) => {
+          latestImages.push(item);
+        });
+      }
+      // Ensure the images property exists on the existing product
+      existingProduct.image = existingProduct.image || [];
+      for (const newImage of images) {
+        latestImages.push(newImage.filename);
+      }
+      let { previous_images, ...other } = product;
 
+      new_product = other;
+
+      const update_product = await this.productRepository.update(id, {
+        ...new_product,
+        image: latestImages,
+      });
+      
       return {
         Message: 'Updated Product Succesfully',
         Data: update_product,
