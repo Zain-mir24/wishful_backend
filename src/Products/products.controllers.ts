@@ -22,7 +22,7 @@ import { updateProductDTO } from './dtos/UpdateProducts.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/dtos';
 import { PageDto } from '../common/page.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 @Controller('Products')
@@ -88,16 +88,13 @@ export class ProductController {
       storage: diskStorage({
         destination: './assets',
         filename: (req, file, callback) => {
-          console.log(file);
-        
-            const name = file.originalname.split('.')[0];
-            const fileExtName = extname(file.originalname);
-            const randomName = Array(4)
-              .fill(null)
-              .map(() => Math.round(Math.random() * 16).toString(16))
-              .join('');
-            callback(null, `${name}-${randomName}${fileExtName}`);
-          
+          const name = file.originalname.split('.')[0];
+          const fileExtName = extname(file.originalname);
+          const randomName = Array(4)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          callback(null, `${name}-${randomName}${fileExtName}`);
         },
       }),
     }),
@@ -107,7 +104,6 @@ export class ProductController {
     @Body() product: updateProductDTO,
     @UploadedFiles() images: Array<Express.Multer.File>,
   ) {
-    console.log(images)
     const data = this.productService.updateProduct(+prodId, product, images);
     return data;
   }

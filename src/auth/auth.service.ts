@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import * as jwt from 'jsonwebtoken';
 
 import { MailerService } from '@nestjs-modules/mailer';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,32 +18,32 @@ export class AuthService {
     return 'This action adds a new auth';
   }
 
-  async signUp(userData) {
-    const accessToken = jwt.sign(
-      { user_email: userData.email, role: userData.role },
-      process.env.SECRET_KEY,
-      { expiresIn: '1h' },
-    );
+  async signUp(userData: CreateUserDto) {
+    try {
+      const accessToken = jwt.sign(
+        { user_email: userData.email, role: userData.role },
+        process.env.SECRET_KEY,
+        { expiresIn: '1h' },
+      );
 
-    const refreshToken = jwt.sign(
-      { user_email: userData.email, role: userData.role },
-      process.env.SECRET_REFRESH_KEY,
-      { expiresIn: '17h' },
-    );
+      const refreshToken = jwt.sign(
+        { user_email: userData.email, role: userData.role },
+        process.env.SECRET_REFRESH_KEY,
+        { expiresIn: '17h' },
+      );
 
-    userData.accessToken = accessToken;
-    userData.refreshToken = refreshToken;
+      userData.accessToken = accessToken;
+      userData.refreshToken = refreshToken;
 
-    const getUser = await this.usersService.create(userData);
+      await this.usersService.create(userData);
 
-    if (getUser !== 'User email already exist') {
       await this.mailerService
         .sendMail({
           to: 'zainmir1000@gmail.com', // list of receivers
           from: 'zainnaeemk10@gmail.com', // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
-          text: `Yelo apna toeken{accessToken}`, // plaintext body
-          html: `<b>Yelo apna token ${accessToken}</b>`, // HTML body content
+          text: `Yelo apna token{accessToken}`, // plaintext body
+          html: `<b>localhost:4200/signup-verify/${accessToken}/${refreshToken}</b>`, // HTML body content
         })
         .then((r) => {
           console.log(r, 'SEND RESPONSE');
@@ -52,11 +53,11 @@ export class AuthService {
         });
       return {
         Message: 'Check email to verify your signup',
-        accessToken,
-        refreshToken,
       };
+    } catch (e) {
+      console.log(e);
+      return e.message;
     }
-    return getUser;
   }
 
   async verify(token: string) {
@@ -97,16 +98,16 @@ export class AuthService {
           user.refreshToken = refreshToken;
           await this.usersService.update(user.id, user);
 
-          delete user.password
+          delete user.password;
           return {
             MESSAGE: 'SUCCESSFULLY LOGGED IN',
             User: user,
           };
         } else {
-          return 'INCORRECT CREDENTIAL'; 
+          return 'INCORRECT CREDENTIAL';
         }
       }
-      return "USER NOT VERIFIED"
+      return 'USER NOT VERIFIED';
     } catch (e) {
       return 'INCORRECT CREDENTIAL';
     }

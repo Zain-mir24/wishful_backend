@@ -28,22 +28,23 @@ export class UsersService {
       where: { email: email },
     });
     let userData = checkEmail;
-
+    console.log(checkEmail);
+    console.log(username, email);
+    if (username === '' || password === '' || email === '') {
+      throw new Error('Empty values are not accepted');
+    }
     if (checkEmail && checkEmail.verified) {
-
-      return 'User email already exist';
-      
-    } 
-    else if (checkEmail && !checkEmail.verified) {
+      throw new Error('User email already exist');
+    } else if (checkEmail && !checkEmail.verified) {
       userData.accessToken = accessToken;
 
       userData.refreshToken = refreshToken;
-     
-      await this.userRepository.update(checkEmail.id, userData);
 
+      await this.userRepository.update(checkEmail.id, userData);
+      console.log('HERER');
       return checkEmail;
-    }
-     else {
+    } else {
+      console.log('ELSE HERE');
       const salt = await bcrypt.genSalt();
 
       const hashedPassword = await bcrypt.hash(password, salt);

@@ -11,9 +11,9 @@ export class CreateUserDto {
     @ApiProperty()
     readonly verified:boolean;
     @ApiProperty()
-    readonly accessToken?:string;
+     accessToken?:string;
     @ApiProperty()
-    readonly refreshToken?:string;
+     refreshToken?:string;
     @ApiProperty()
     readonly role:string;
 }
