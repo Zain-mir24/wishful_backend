@@ -68,12 +68,17 @@ export class AuthService {
         let userData = await this.usersService.findByEmail(email);
         userData.verified = true;
         const update = await this.usersService.update(userData.id, userData);
-        return update;
+        if(!update){
+          throw new Error("Error updating data")
+        }
+        return {
+          message:"User Verified"
+        };
       } else {
         return 'Token expireed';
       }
     } catch (e) {
-      return e;
+      throw new Error(e);
     }
   }
 
