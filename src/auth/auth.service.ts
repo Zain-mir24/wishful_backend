@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { userDto } from './dto/user-login.dto';
@@ -8,6 +8,7 @@ import * as jwt from 'jsonwebtoken';
 
 import { MailerService } from '@nestjs-modules/mailer';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { Exception } from 'handlebars';
 @Injectable()
 export class AuthService {
   constructor(
@@ -75,16 +76,22 @@ export class AuthService {
           message:"User Verified"
         };
       } else {
-        return 'Token expireed';
+        throw new Exception( 'Token expireed')
       }
     } catch (e) {
-      throw new Error(e);
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: e,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: e
+      });;
     }
   }
 
   async login(userData: userDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
+      console.log(user,"USER")
       if (user && user.verified) {
         const validate = await bcrypt.compare(userData.password, user.password);
         console.log(validate);

@@ -70,6 +70,7 @@ export class ProductController {
   @Get()
   @Roles(Role.Admin, Role.User)
   getProduct(@Query() pageOptionsDto: PageOptionsDto) {
+    console.log(pageOptionsDto)
     const data = this.productService.getProducts(pageOptionsDto);
     return data;
   }

@@ -29,12 +29,10 @@ export class PageOptionsDto {
   @Min(1)
   @Max(50)
   @IsOptional()
-  readonly pageSize?: number = 10;
+  readonly pageSize?: number = 5;
 
-  get skip(): number {
-    return (this.page - 1) * this.pageSize;
-  }
 
+ 
 
   @Type(()=> String)
   readonly search?: string;

@@ -41,10 +41,10 @@ export class OrdersService {
   ): Promise<PageDto<CreateOrderDto>> {
     try {
       const queryBuilder = this.orderRepository.createQueryBuilder('orders');
-
+      const skip=(pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
       queryBuilder
         .orderBy('orders.id', pageOptionsDto.order)
-        .skip(pageOptionsDto.skip)
+        .skip(skip)
         .take(pageOptionsDto.pageSize);
 
       const itemCount = await queryBuilder.getCount();

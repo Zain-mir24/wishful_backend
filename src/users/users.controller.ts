@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  UseInterceptors, ClassSerializerInterceptor
+  UseInterceptors, ClassSerializerInterceptor,Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +15,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
 import { Role } from 'src/common/role.enum';
+import { PageOptionsDto } from 'src/common/dtos';
+import { PageDto } from '../common/page.dto';
 @Controller('users')
 @UseGuards(RolesGuard)
 @UseInterceptors(ClassSerializerInterceptor)
@@ -28,7 +30,7 @@ export class UsersController {
 
   @Get('all')
   @Roles(Role.Admin)
-  findAll() {
+  findAll(@Query() pageOptionsDto: PageOptionsDto) {
     return this.usersService.findAll();
   }
 

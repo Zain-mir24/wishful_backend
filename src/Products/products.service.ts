@@ -40,6 +40,8 @@ export class ProductsService {
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
+  console.log(pageOptionsDto)
+  const skip=(pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     if (pageOptionsDto.search) {
@@ -47,13 +49,15 @@ export class ProductsService {
         searchTerm: `%${pageOptionsDto.search}%`,
       });
     }
+    console.log(skip)
 
     queryBuilder
       .orderBy('product.id', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.pageSize);
+      .skip(skip)
+      .take(pageOptionsDto.pageSize)
 
     const itemCount = await queryBuilder.getCount();
+    // console.log(itemCount)
     const { entities } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
