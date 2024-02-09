@@ -70,16 +70,23 @@ export class ProductController {
   @Get()
   @Roles(Role.Admin, Role.User)
   getProduct(@Query() pageOptionsDto: PageOptionsDto) {
-    console.log(pageOptionsDto)
-    const data = this.productService.getProducts(pageOptionsDto);
-    return data;
+    try {
+      const data = this.productService.getProducts(pageOptionsDto);
+      return data;
+    } catch (e) {
+      return e;
+    }
   }
 
   @Get(':id')
   @Roles(Role.Admin, Role.User)
   getProductById(@Param('id') prodId: number) {
-    const data = this.productService.getProductById(prodId);
-    return data;
+    try {
+      const data = this.productService.getProductById(prodId);
+      return data;
+    } catch (e) {
+      return e;
+    }
   }
 
   @Patch(':id')

@@ -31,7 +31,7 @@ export class UsersController {
   @Get('all')
   @Roles(Role.Admin)
   findAll(@Query() pageOptionsDto: PageOptionsDto) {
-    return this.usersService.findAll();
+    return this.usersService.findAll(pageOptionsDto);
   }
 
   @Get(':id')

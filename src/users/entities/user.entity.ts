@@ -4,7 +4,7 @@ import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 
-@Entity()
+@Entity('user')
 @SerializeOptions({ excludeExtraneousValues: true })
 export class User {
   @PrimaryGeneratedColumn()

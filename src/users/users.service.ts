@@ -3,6 +3,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { PageOptionsDto } from '../common/dtos';
+import { PageMetaDto } from '../common/page.meta.dto';
+import { PageDto } from '../common/page.dto';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as jwt from 'jsonwebtoken';
@@ -72,8 +75,29 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.userRepository.find();
+  async findAll(
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<CreateUserDto>> {
+    const skip = (pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    if (pageOptionsDto.search) {
+      queryBuilder.where('user.username ILIKE :searchTerm', {
+        searchTerm: `%${pageOptionsDto.search}%`,
+      });}
+      queryBuilder
+        .orderBy('user.id', pageOptionsDto.order)
+        .skip(skip)
+        .take(pageOptionsDto.pageSize);
+    
+
+    const itemCount = await queryBuilder.getCount();
+
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   // Getting user detail
