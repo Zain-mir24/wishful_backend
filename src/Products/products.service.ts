@@ -40,8 +40,7 @@ export class ProductsService {
   async getProducts(
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
-    
-    const skip=(pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
+    const skip = (pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     if (pageOptionsDto.search) {
@@ -49,19 +48,29 @@ export class ProductsService {
         searchTerm: `%${pageOptionsDto.search}%`,
       });
     }
+    const query = `
+            SELECT *
+            FROM product
+            ORDER BY product.id ${
+              pageOptionsDto.order === 'DESC' ? 'DESC' : 'ASC'
+            }
+            OFFSET $1
+            LIMIT $2
+          `;
+    const entitiesResult = await this.productRepository.query(query, [
+      skip,
+      pageOptionsDto.pageSize,
+    ]);
+
+    const itemCountQuery = `SELECT COUNT(*) FROM product`;
     
-    queryBuilder
-      .orderBy('product.id', pageOptionsDto.order)
-      .skip(skip)
-      .take(pageOptionsDto.pageSize)
-
-    const itemCount = await queryBuilder.getCount();
-    // console.log(itemCount)
-    const { entities } = await queryBuilder.getRawAndEntities();
-
+    const itemCountResult = await this.productRepository.query(itemCountQuery);
+   
+    const itemCount=itemCountResult[0].count
+  
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
-    return new PageDto(entities, pageMetaDto);
+    return new PageDto(entitiesResult, pageMetaDto);
   }
 
   async getProductById(ProductId: number) {
@@ -122,7 +131,7 @@ export class ProductsService {
         ...new_product,
         image: latestImages,
       });
-      
+
       return {
         Message: 'Updated Product Succesfully',
         Data: update_product,
