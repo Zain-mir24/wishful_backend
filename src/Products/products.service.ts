@@ -41,12 +41,9 @@ export class ProductsService {
     pageOptionsDto: PageOptionsDto,
   ): Promise<PageDto<productDto>> {
     const skip = (pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
-
+    let searchCondition: string;
     if (pageOptionsDto.search) {
-      queryBuilder.where('product.title ILIKE :searchTerm', {
-        searchTerm: `%${pageOptionsDto.search}%`,
-      });
+      searchCondition = `product.title ILIKE %${pageOptionsDto.search}%`;
     }
     const query = `
             SELECT *
@@ -63,11 +60,11 @@ export class ProductsService {
     ]);
 
     const itemCountQuery = `SELECT COUNT(*) FROM product`;
-    
+
     const itemCountResult = await this.productRepository.query(itemCountQuery);
-   
-    const itemCount=itemCountResult[0].count
-  
+
+    const itemCount = itemCountResult[0].count;
+
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entitiesResult, pageMetaDto);
