@@ -40,7 +40,7 @@ export class AuthService {
 
       await this.mailerService
         .sendMail({
-          to: 'zainmir1000@gmail.com', // list of receivers
+          to: userData.email, // list of receivers
           from: 'zainnaeemk10@gmail.com', // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
           text: `Yelo apna token{accessToken}`, // plaintext body
