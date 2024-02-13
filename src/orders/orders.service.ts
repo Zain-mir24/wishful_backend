@@ -28,8 +28,36 @@ export class OrdersService {
    */
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
-    const add = this.orderRepository.create(createOrderDto);
-    return await this.orderRepository.save(add);
+    try {
+      let is_user_exists = await this.usersService.findOne(
+        createOrderDto.userId,
+      );
+
+      if (!is_user_exists) {
+        throw Error;
+      }
+
+      let is_product_exists = await this.productsService.findProductsByIds(
+        createOrderDto.productId,
+      );
+      if (!is_product_exists) {
+        throw Error;
+      }
+
+      const add = this.orderRepository.create(createOrderDto);
+      return await this.orderRepository.save(add);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          response: e.message,
+        },
+        HttpStatus.BAD_REQUEST,
+        {
+          cause: e,
+        },
+      );
+    }
   }
   /**
    * this function is used to get all the Order's list
@@ -41,7 +69,7 @@ export class OrdersService {
   ): Promise<PageDto<CreateOrderDto>> {
     try {
       const queryBuilder = this.orderRepository.createQueryBuilder('orders');
-      const skip=(pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
+      const skip = (pageOptionsDto.page - 1) * pageOptionsDto.pageSize;
       queryBuilder
         .orderBy('orders.id', pageOptionsDto.order)
         .skip(skip)
@@ -90,7 +118,7 @@ export class OrdersService {
       };
       const getOrderDetails = await this.orderRepository.findOneBy({ id });
       const { userId, productId } = getOrderDetails;
-      
+
       let orderDetailModified = {
         address: getOrderDetails.address,
         status: getOrderDetails.status,

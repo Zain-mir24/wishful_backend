@@ -36,7 +36,7 @@ describe('Product Service', () => {
 
   it('Get all products ',async()=>{
 
-    const mockPageOptions: PageOptionsDto = { page: 1, pageSize: 4,skip:0 };
+    const mockPageOptions: PageOptionsDto = { page: 1, pageSize: 4 };
      // Mock the implementation of getProducts
      (prodService.getProducts as jest.Mock).mockResolvedValue(mock_product_instance);
     const result = await prodService.getProducts(mockPageOptions)

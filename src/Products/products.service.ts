@@ -82,14 +82,21 @@ export class ProductsService {
   async getProductsByCategory() {}
 
   async findProductsByIds(ids): Promise<product[]> {
-    const productIds = ids.map((id) => parseInt(id, 10));
+    try {
+      const productIds = ids.map((id) => parseInt(id, 10));
 
-    let getData = await this.productRepository
-      .createQueryBuilder('product')
-      .where('product.id IN (:...productIds)', { productIds })
-      .getMany();
+      let getData = await this.productRepository
+        .createQueryBuilder('product')
+        .where('product.id IN (:...productIds)', { productIds })
+        .getMany();
 
-    return getData;
+      if (getData.length !== productIds.length) {
+        throw new Error('Product does not exist');
+      }
+      return getData;
+    } catch (e) {
+      throw e;
+    }
   }
 
   // now need to alter the update product function

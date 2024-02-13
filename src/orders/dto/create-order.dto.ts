@@ -10,4 +10,6 @@ export class CreateOrderDto {
     readonly price:number;
     @ApiProperty()
     readonly productId:number[];
+    @ApiProperty()
+    readonly userId:number;
 }

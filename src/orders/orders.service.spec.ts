@@ -97,4 +97,8 @@ describe('OrdersService', () => {
       productDetails: mockProductDetails,
     });
   });
+
+  it('User placing order',async ()=>{
+  
+  })
 });

@@ -84,12 +84,12 @@ export class UsersService {
     if (pageOptionsDto.search) {
       queryBuilder.where('user.username ILIKE :searchTerm', {
         searchTerm: `%${pageOptionsDto.search}%`,
-      });}
-      queryBuilder
-        .orderBy('user.id', pageOptionsDto.order)
-        .skip(skip)
-        .take(pageOptionsDto.pageSize);
-    
+      });
+    }
+    queryBuilder
+      .orderBy('user.id', pageOptionsDto.order)
+      .skip(skip)
+      .take(pageOptionsDto.pageSize);
 
     const itemCount = await queryBuilder.getCount();
 
@@ -102,7 +102,16 @@ export class UsersService {
 
   // Getting user detail
   async findOne(id: number) {
-    return this.userRepository.findOneBy({ id });
+    try {
+      let user_detail = await this.userRepository.findOneBy({ id });
+
+      if (!user_detail) {
+        throw new Error('User does not exist');
+      }
+      return user_detail;
+    } catch (e) {
+      throw e
+    }
   }
 
   findByEmail(email: string) {
