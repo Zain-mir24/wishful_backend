@@ -6,21 +6,34 @@ import { Order } from './entities/order.entity';
 import { product } from '../Products/entities/product.entities';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import {
+  mock_order_instance,
+  order_placed_expected_result,
+  mockUserDetails,
+  mock_order_results,
+  MockOrderDataDetail,
+} from './mocks';
 jest.mock('../users/users.service');
 describe('OrdersService', () => {
   let service: OrdersService;
   let usersService: UsersService;
   let productService: ProductsService;
-  
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrdersService, UsersService, ProductsService,  {
-        provide: getRepositoryToken(Order), // use the token for the repository
-        useClass: Repository, // mock the repository class
-      },{
-        provide: getRepositoryToken(product), // use the token for the repository
-        useClass: Repository, // mock the repository class
-      }],
+      providers: [
+        OrdersService,
+        UsersService,
+        ProductsService,
+        {
+          provide: getRepositoryToken(Order), // use the token for the repository
+          useClass: Repository, // mock the repository class
+        },
+        {
+          provide: getRepositoryToken(product), // use the token for the repository
+          useClass: Repository, // mock the repository class
+        },
+      ],
     }).compile();
 
     service = module.get<OrdersService>(OrdersService);
@@ -42,31 +55,6 @@ describe('OrdersService', () => {
       userId: 37,
     };
 
-    const mockUserDetails: any = {
-      id: 37,
-
-      username: 'zain123 ',
-
-      email: 'zainmir1000@gmail.com',
-
-      phone_no: '213423',
-
-      password: '$2b$10$9Gf1UvuAFHEhJV6LEfERnuLgh5XrCl5PsX.tfDXzUolNLGQne3f8.',
-
-      verified: true,
-
-      accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2VtYWlsIjoiemFpbm1pcjEwMDBAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MDE3MTUxNDEsImV4cCI6MTcwMTgwMTU0MX0.8YFqNbvOcbQDirO2zWRGXEQXmgbq9Fp71ZouMfsmoNE',
-
-      refreshToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2VtYWlsIjoiemFpbm1pcjEwMDBAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MDE3MTUxNDEsImV4cCI6MTcwMTgwMTU0MX0.OEWGOz9szumfNeolBfsr1dMxPc4wyasW7eHai3GEM2g',
-
-      role: 'user',
-
-      created_at: new Date('2023-11-12T09:38:01.000Z'),
-
-      updated_at: new Date('2023-11-12T09:38:01.000Z'),
-    };
     const mockProductDetails: any = [
       { id: 1, title: 'Mocked Product 1', price: 50 },
       { id: 2, title: 'Mocked Product 2', price: 75 },
@@ -98,7 +86,42 @@ describe('OrdersService', () => {
     });
   });
 
-  it('User placing order',async ()=>{
-  
-  })
+  it('should return the expected order when placing an order', async () => {
+    const check_user = jest
+      .spyOn(usersService, 'findOne')
+      .mockResolvedValue(mockUserDetails);
+
+    const verify_product = jest
+      .spyOn(productService, 'findProductsByIds')
+      .mockResolvedValue(mock_order_results);
+    // Mocking order creation and save
+    const create_order = jest
+      .spyOn(service['orderRepository'], 'create')
+      .mockReturnValueOnce(order_placed_expected_result); // Replace mockOrderDataDetail with your expected order data
+
+    const save_order = jest
+      .spyOn(service['orderRepository'], 'save')
+      .mockResolvedValueOnce(order_placed_expected_result);
+    const result = await usersService.findOne(mockUserDetails.id);
+
+    let is_product_exists = await productService.findProductsByIds(
+      MockOrderDataDetail.productId,
+    );
+    // Call the logic for creating and saving an order
+    const add = service['orderRepository'].create(MockOrderDataDetail);
+    const order_placed = await service['orderRepository'].save(add);
+    // Assertions
+    expect(check_user).toHaveBeenCalledWith(mockUserDetails.id); // Check if the spy was called with the expected argument
+    expect(result).toEqual(mockUserDetails); // Check if the method produced the expected result
+
+    expect(verify_product).toHaveBeenCalledWith(MockOrderDataDetail.productId);
+    expect(is_product_exists).toEqual(mock_order_results);
+
+    // Check if the order was created with the correct data
+    expect(create_order).toHaveBeenCalledWith(MockOrderDataDetail);
+    // Check if the order was saved successfully
+    expect(save_order).toHaveBeenCalledWith(order_placed_expected_result);
+
+    expect(order_placed).toEqual(order_placed_expected_result);
+  });
 });
