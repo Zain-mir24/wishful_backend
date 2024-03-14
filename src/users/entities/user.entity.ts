@@ -16,13 +16,14 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
-  phone_no: string;
 
   @Column()
   @Exclude()
   password: string;
 
+
+  @Column({ type: 'integer', array: true, default: [] }) // Assuming PostgreSQL is used
+  eventIds: number[]; // Store an array of event IDs associated with the user
   @Column()
   verified: boolean | null;
 
@@ -32,8 +33,7 @@ export class User {
   @Column()
   refreshToken?: string;
 
-  @Column()
-  role: string;
+  
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

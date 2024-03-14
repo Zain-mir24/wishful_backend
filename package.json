@@ -25,6 +25,7 @@
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^4.0.1",
     "@nestjs/swagger": "^7.1.15",
     "@nestjs/typeorm": "^10.0.0",
     "bcrypt": "^5.1.1",
@@ -39,6 +40,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "sendmail": "^1.6.1",
+    "socket.io": "^4.7.4",
     "typeorm": "^0.3.17"
   },
   "devDependencies": {

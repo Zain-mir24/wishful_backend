@@ -21,10 +21,8 @@ export class UsersService {
       username,
       password,
       email,
-      phone_no,
       accessToken,
       refreshToken,
-      role,
     } = createUserDto;
 
     const checkEmail = await this.userRepository.findOne({
@@ -60,15 +58,12 @@ export class UsersService {
 
       user.email = email;
 
-      user.phone_no = phone_no;
-
       user.verified = false;
 
       user.accessToken = accessToken;
 
       user.refreshToken = refreshToken;
 
-      user.role = role;
       const myUser = await this.userRepository.save(user);
 
       return myUser;

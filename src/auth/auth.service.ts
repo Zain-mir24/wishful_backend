@@ -22,13 +22,13 @@ export class AuthService {
   async signUp(userData: CreateUserDto) {
     try {
       const accessToken = jwt.sign(
-        { user_email: userData.email, role: userData.role },
+        { user_email: userData.email },
         process.env.SECRET_KEY,
         { expiresIn: '1h' },
       );
 
       const refreshToken = jwt.sign(
-        { user_email: userData.email, role: userData.role },
+        { user_email: userData.email },
         process.env.SECRET_REFRESH_KEY,
         { expiresIn: '17h' },
       );
@@ -44,7 +44,7 @@ export class AuthService {
           from: 'zainnaeemk10@gmail.com', // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
           text: `Yelo apna token{accessToken}`, // plaintext body
-          html: `<b>localhost:4200/signup-verify/${accessToken}/${refreshToken}</b>`, // HTML body content
+          html: `<a href="http://localhost:4200/signup-verify/${accessToken}/${refreshToken}">Click here to verify your account</a>`, // HTML body content
         })
         .then((r) => {
           console.log(r, 'SEND RESPONSE');
@@ -97,12 +97,12 @@ export class AuthService {
         console.log(validate);
         if (validate) {
           const accessToken = jwt.sign(
-            { user_email: userData.email, role: user.role },
+            { user_email: userData.email },
             process.env.SECRET_KEY,
             { expiresIn: '1d' },
           );
           const refreshToken = jwt.sign(
-            { user_email: userData.email, role: user.role },
+            { user_email: userData.email },
             process.env.SECRET_REFRESH_KEY,
             { expiresIn: '1d' },
           );
@@ -134,7 +134,7 @@ export class AuthService {
       const email = verify.user_email;
       let userData = await this.usersService.findByEmail(email);
       const accessToken = jwt.sign(
-        { user_email: userData.email, role: userData.role },
+        { user_email: userData.email },
         process.env.SECRET_KEY,
         { expiresIn: '1h' },
       );

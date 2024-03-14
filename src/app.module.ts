@@ -1,11 +1,9 @@
 import { Module, MiddlewareConsumer,RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProductsModule } from './Products/product.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
 import { ConfigModule } from '@nestjs/config';
-import { OrdersModule } from './orders/orders.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentModule } from './payment/payment.module';
@@ -15,9 +13,11 @@ import { MailingService } from './mailing/mailing.service';
 import { LoggerMiddleware } from './common/middleware/login.middleware';
 import { RolesGuard } from './common/guard/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { CategoryModule } from './category/category.module';
+import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
+
 @Module({
+
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({ ...typeOrmConfig, autoLoadEntities: true }),
@@ -39,12 +39,11 @@ import { MulterModule } from '@nestjs/platform-express';
         files: 5, // Maximum number of files
       },
     }),
-    ProductsModule,
-    OrdersModule,
+
     UsersModule,
     AuthModule,
     PaymentModule,
-    CategoryModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PaymentService, MailingService,  {
