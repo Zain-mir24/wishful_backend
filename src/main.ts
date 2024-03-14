@@ -6,10 +6,10 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
   const config = new DocumentBuilder()
-  .setTitle('Ecommerce')
-  .setDescription('The Ecommerce API description')
+  .setTitle('Wishful')
+  .setDescription('The Wishful API description')
   .setVersion('1.0')
-  .addTag('Ecommerce')
+  .addTag('Wishful')
   .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
