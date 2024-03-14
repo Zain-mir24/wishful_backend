@@ -1,13 +1,7 @@
 {
   "version": 2,
+  "functions": { "api/**/*.js": { "runtime": "nodejs12.x" } },
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "nest-app/main.ts"
-    }
-  ],
-  "env": {
-    "NPM_CONFIG_PRODUCTION": "false",
-    "NODE_ENV": "development"
-  }
+    { "src": "/(.*)", "dest": "dist/main.js" }
+  ]
 }
