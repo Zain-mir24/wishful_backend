@@ -5,8 +5,8 @@ var dotenvExpand = require('dotenv-expand');
 
 var myEnv = dotenv.config();
 const myvalue = dotenvExpand.expand(myEnv).parsed;
-const connectionOptions = parse(myvalue.POSTGRES_URL);
-
+const connectionOptions = parse("postgres://default:e2Wu9AkqaOMt@ep-broad-bush-a4h2zm7x-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require");
+console.log(myvalue.POSTGRES_URL)
 // const databaseUsername =myvalue.DB_USER_NAME;
 // const databasePassword =myvalue.DB_PASSWORD;
 // const databaseName =myvalue.DB_NAME;
