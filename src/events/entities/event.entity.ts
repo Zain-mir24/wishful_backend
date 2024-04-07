@@ -12,7 +12,7 @@ import { Payment } from 'src/payment/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
 export class Event {
   @PrimaryGeneratedColumn()
-  id: number;
+  Eid: number;
 
   @Column()
   date: string;
@@ -40,7 +40,7 @@ export class Event {
 
   @OneToOne(() => Payment, { nullable: true }) // Define a one-to-one relationship with Payment entity, nullable
   @JoinColumn()
-  P_id: Payment; // Define a property to hold the reference to Payment entity
+  Pid: Payment; // Define a property to hold the reference to Payment entity
 
   @ManyToOne(() => User, (user) => user.eventIds)
   @JoinColumn({ name: 'id' })
