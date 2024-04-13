@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column ,OneToMany} from 'typeorm';
 import { SerializeOptions } from '@nestjs/common/serializer';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
-
+import { Event } from 'src/events/entities/event.entity';
 @Entity('user')
 @SerializeOptions({ excludeExtraneousValues: true })
 export class User {
@@ -21,9 +21,6 @@ export class User {
   @Exclude()
   password: string;
 
-
-  @Column({ type: 'integer', array: true, default: [] }) // Assuming PostgreSQL is used
-  eventIds: number[]; // Store an array of event IDs associated with the user
   @Column()
   verified: boolean | null;
 
@@ -33,6 +30,8 @@ export class User {
   @Column()
   refreshToken?: string;
 
+  @OneToMany(() => Event, event => event.owner,{ cascade: true })
+  events: Event[];
   
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

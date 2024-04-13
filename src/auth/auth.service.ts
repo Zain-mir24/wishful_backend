@@ -44,7 +44,7 @@ export class AuthService {
           from: 'zainnaeemk10@gmail.com', // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
           text: `Yelo apna token{accessToken}`, // plaintext body
-          html: `<a href="http://localhost:4200/signup-verify/${accessToken}/${refreshToken}">Click here to verify your account</a>`, // HTML body content
+          html: `<a href="http://localhost:3000/signup-verify/${accessToken}/${refreshToken}">Click here to verify your account</a>`, // HTML body content
         })
         .then((r) => {
           console.log(r, 'SEND RESPONSE');

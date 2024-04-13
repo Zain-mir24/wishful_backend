@@ -10,11 +10,12 @@ import { SerializeOptions } from '@nestjs/common/serializer';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
+@Entity('event')
 export class Event {
   @PrimaryGeneratedColumn()
   Eid: number;
 
-  @Column()
+  @Column({ type: 'timestamp'})
   date: string;
 
   @Column()
@@ -30,7 +31,7 @@ export class Event {
   gift_message: string;
 
   @Column()
-  gift_amount: string;
+  gift_amount: number;
 
   @Column()
   gift_from: string;
@@ -39,12 +40,13 @@ export class Event {
   country: string;
 
   @OneToOne(() => Payment, { nullable: true }) // Define a one-to-one relationship with Payment entity, nullable
-  @JoinColumn()
-  Pid: Payment; // Define a property to hold the reference to Payment entity
+  @JoinColumn({name:"payment_id",referencedColumnName:"Pid"})
+  payment: Payment; // Define a property to hold the reference to Payment entity
 
-  @ManyToOne(() => User, (user) => user.eventIds)
-  @JoinColumn({ name: 'id' })
-  user: User;
+  @ManyToOne(()=>User )
+  @JoinColumn({name:"user_id",referencedColumnName: 'id'})
+  owner:User;
+
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

@@ -25,7 +25,7 @@ export class CreateEventDto {
     readonly country:string;
 
     @ApiProperty()
-    readonly P_ID:string;
+    user_id: number;
 
         
 }
