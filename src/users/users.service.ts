@@ -82,6 +82,7 @@ export class UsersService {
       });
     }
     queryBuilder
+    .leftJoinAndSelect('user.events','event')
       .orderBy('user.id', pageOptionsDto.order)
       .skip(skip)
       .take(pageOptionsDto.pageSize);

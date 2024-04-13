@@ -7,15 +7,7 @@ export class Payment {
     Pid:number;
     @Column()
     status:number   // 0 = unpaid, 1= paid, 2=scheduled
-    
-    @Column()
-    card_number:number
-
-    @Column({ type: 'timestamp'})
-    Expiration:Date
-
-    @Column()
-    cvc:number
+ 
 
     @OneToOne(() => Event,(event)=>event.payment) // Define one-to-one relationship with Event entity
     @JoinColumn({ name: "event_id",referencedColumnName:"Eid" })

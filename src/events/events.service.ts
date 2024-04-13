@@ -5,22 +5,24 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Event } from './entities/event.entity';
 import { Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class EventsService {
   constructor(
+    private readonly usersService: UsersService,
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+  
   ) {}
   async create(createEventDto: CreateEventDto) {
     try {
       const { user_id, ...others } = createEventDto;
       const user = await this.userRepository
         .createQueryBuilder('user')
-        .leftJoinAndSelect('user.events', 'event')
-        .where('user.id = :userId', { user_id })
+        .where('user.id = :user_id', { user_id: user_id })
         .getOne();
         console.log(user)
       if (!user) {
@@ -32,29 +34,28 @@ export class EventsService {
         owner: user,
       });
 
-      // Add the newly created event to the user's events
-      user.events.push(event);
 
       // Save the event and the user to persist the changes
       const save_event = await this.eventRepository.save(event);
-      await this.userRepository.save(user);
       return {
         status: 200,
         message: 'Event created',
         data: save_event,
       };
     } catch (e) {
+      console.log(e)
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: e,
+        error: e.message,
       }, HttpStatus.BAD_REQUEST, {
         cause: e
       });;
     }
   }
 
-  findAll() {
-    return `This action returns all events`;
+  async findAll() {
+    const allevent=await this.eventRepository.find();
+    return allevent
   }
 
   findOne(id: number) {
