@@ -70,6 +70,7 @@ export class AppModule {
       .exclude(
         { path: 'auth/sign-up', method: RequestMethod.POST },
         { path: 'auth/login', method: RequestMethod.POST },
+        {path:"/",method:RequestMethod.ALL}
       ).forRoutes('*');
   }
 }
