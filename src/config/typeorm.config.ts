@@ -16,12 +16,12 @@ const databaseType=myvalue.DB_TYPE;
 // database: databaseName||connectionOptions.database,
 export const typeOrmConfig: TypeOrmModuleOptions = {
   type: databaseType,
-  host:databaseHost,
-  port:databasePort,
-  username:databaseUsername,
-  password: databasePassword,
-  database: databaseName,
-  ssl: false,
+  host:connectionOptions.host,
+  port:connectionOptions.port,
+  username:connectionOptions.user,
+  password: connectionOptions.password,
+  database: connectionOptions.database,
+  ssl: require,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: true,
 
