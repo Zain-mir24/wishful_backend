@@ -49,6 +49,12 @@ export class AuthController {
     return this.authService.generateRefresh(token);
   }
 
+  @Post("update-password")
+  @ApiResponse({ status: HttpStatus.OK, description: 'Password updated'})
+  updatePassword(@Req() request:Request){
+
+  }
+
   @Get()
   findAll() {
     return this.authService.findAll();

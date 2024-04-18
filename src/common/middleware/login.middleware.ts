@@ -13,7 +13,7 @@ export class LoggerMiddleware implements NestMiddleware {
      if(verify) next();
     } catch (e) {
       console.log(e)
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      throw new HttpException(e, HttpStatus.FORBIDDEN);
     }
   }
 }

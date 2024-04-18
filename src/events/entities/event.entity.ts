@@ -21,6 +21,12 @@ export class Event {
   @Column()
   event_name: string;
 
+  @Column({nullable:true})
+  event_url: string;
+
+  @Column({nullable:true})
+  reciever_email: string;
+
   @Column()
   image: string;
 

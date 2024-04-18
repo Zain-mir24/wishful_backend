@@ -1,12 +1,12 @@
 var dotenvExpand = require('dotenv-expand');
-export const myENV=require('dotenv').config()
+export const myENV = require('dotenv').config();
 var dotenvExpand = require('dotenv-expand');
 var parse = require('pg-connection-string').parse;
 export const myvalue = dotenvExpand.expand(myENV).parsed;
-console.log(process.env.DB_TYPE)
+console.log(process.env.DB_TYPE);
 export const connectionOptions = parse(process.env.POSTGRES_URL);
 
-import { Module, MiddlewareConsumer,RequestMethod } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,7 +25,6 @@ import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({ ...typeOrmConfig, autoLoadEntities: true }),
@@ -40,7 +39,7 @@ import { MulterModule } from '@nestjs/platform-express';
       defaults: {
         from: process.env.MY_EMAIL,
       },
-    }), 
+    }),
     MulterModule.register({
       dest: './assets', // Specify the destination folder
       limits: {
@@ -54,18 +53,23 @@ import { MulterModule } from '@nestjs/platform-express';
     EventsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PaymentService, MailingService,  {
-    provide: APP_GUARD,
-    useClass: RolesGuard,
-  },],
+  providers: [
+    AppService,
+    PaymentService,
+    MailingService,
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .forRoutes(
-        { path: 'users', method: RequestMethod.GET },
-        { path: 'users/:id', method: RequestMethod.POST },
-      );
+      .exclude(
+        { path: 'auth/sign-up', method: RequestMethod.POST },
+        { path: 'auth/login', method: RequestMethod.POST },
+      ).forRoutes('*');
   }
 }

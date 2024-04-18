@@ -25,6 +25,12 @@ export class CreateEventDto {
     readonly country:string;
 
     @ApiProperty()
+    readonly reciever_email:string;
+
+    @ApiProperty()
+    readonly event_url:string;
+
+    @ApiProperty()
     user_id: number;
 
         

@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Exception } from 'handlebars';
+let stripe = require('stripe')(process.env.Stripe_Key);
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,6 +22,10 @@ export class AuthService {
 
   async signUp(userData: CreateUserDto) {
     try {
+      let user_exists = await this.usersService.findByEmail(userData.email);
+      if(!!user_exists){
+        throw new Error("User already exists")
+      }
       const accessToken = jwt.sign(
         { user_email: userData.email },
         process.env.SECRET_KEY,
@@ -56,42 +61,64 @@ export class AuthService {
         Message: 'Check email to verify your signup',
       };
     } catch (e) {
-      console.log(e);
-      return e.message;
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.message || e,
+        },
+        HttpStatus.BAD_REQUEST,
+        {
+          cause: e.message || e,
+        },
+      );
     }
   }
 
   async verify(token: string) {
     try {
+      console.log(process.env.STRIPE_TEST_KEY);
       const verify = jwt.verify(token, process.env.SECRET_KEY);
       if (verify) {
         const email = verify.user_email;
         let userData = await this.usersService.findByEmail(email);
         userData.verified = true;
+        const customer = await stripe.customers.create({
+          name: userData.username,
+          email: email,
+        });
+        if (!customer) {
+          throw new Error('Error adding user to stripe');
+        }
         const update = await this.usersService.update(userData.id, userData);
-        if(!update){
-          throw new Error("Error updating data")
+        //create stripe user here
+
+        if (!update) {
+          throw new Error('Error updating data');
         }
         return {
-          message:"User Verified"
+          message: 'User Verified',
         };
       } else {
-        throw new Exception( 'Token expireed')
+        throw new Exception('Token expireed');
       }
     } catch (e) {
-      throw new HttpException({
-        status: HttpStatus.BAD_REQUEST,
-        error: e,
-      }, HttpStatus.BAD_REQUEST, {
-        cause: e
-      });;
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.message || e,
+        },
+        HttpStatus.BAD_REQUEST,
+        {
+          cause: e.message || e,
+        },
+      );
     }
   }
 
   async login(userData: userDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
-      console.log(user,"USER")
+      
       if (user && user.verified) {
         const validate = await bcrypt.compare(userData.password, user.password);
         console.log(validate);
@@ -108,6 +135,7 @@ export class AuthService {
           );
           user.accessToken = accessToken;
           user.refreshToken = refreshToken;
+
           await this.usersService.update(user.id, user);
 
           delete user.password;
