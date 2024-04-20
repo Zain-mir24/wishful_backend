@@ -6,7 +6,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Event } from './entities/event.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
-let stripe = require('stripe')(process.env.Stripe_Key); 
+let stripe = require('stripe')(process.env.STRIPE_KEY); 
 @Injectable()
 export class EventsService {
   constructor(
