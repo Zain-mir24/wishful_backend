@@ -22,8 +22,8 @@ export class AuthService {
 
   async signUp(userData: CreateUserDto) {
     try {
-      let user_exists = await this.usersService.findByEmail(userData.email);
-      if(!!user_exists){
+      let user = await this.usersService.findByEmail(userData.email);
+      if(user&&!!user.verified){
         throw new Error("User already exists")
       }
       const accessToken = jwt.sign(
