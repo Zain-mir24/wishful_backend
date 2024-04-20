@@ -9,7 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Exception } from 'handlebars';
-let stripe = require('stripe')(process.env.Stripe_Key);
+let stripe = require('stripe')(process.env.STRIPE_KEY);
 @Injectable()
 export class AuthService {
   constructor(
@@ -76,7 +76,8 @@ export class AuthService {
 
   async verify(token: string) {
     try {
-      console.log(process.env.Stripe_Key);
+      console.log(process.env.STRIPE_KEY);
+      console.log(process.env.STRIPE_TEST_KEY);
       const verify = jwt.verify(token, process.env.SECRET_KEY);
       if (verify) {
         const email = verify.user_email;
