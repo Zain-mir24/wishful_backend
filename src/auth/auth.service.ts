@@ -76,7 +76,7 @@ export class AuthService {
 
   async verify(token: string) {
     try {
-      console.log(process.env.STRIPE_TEST_KEY);
+      console.log(process.env.Stripe_Key);
       const verify = jwt.verify(token, process.env.SECRET_KEY);
       if (verify) {
         const email = verify.user_email;
