@@ -1,15 +1,21 @@
 
 import { PrimaryGeneratedColumn ,Column,Entity,OneToOne,JoinColumn} from "typeorm";
 import { Event } from "src/events/entities/event.entity";
+import { isString } from "class-validator";
 @Entity('payment')
 export class Payment {
     @PrimaryGeneratedColumn()
-    Pid:number;
-    @Column()
-    status:number   // 0 = unpaid, 1= paid, 2=scheduled
- 
+    pid:number;
 
-    @OneToOne(() => Event,(event)=>event.payment) // Define one-to-one relationship with Event entity
-    @JoinColumn({ name: "event_id",referencedColumnName:"Eid" })
+
+    @Column({nullable:true})
+    setup_intent:string
+
+    @Column()
+    amount:number
+
+
+    @OneToOne(() => Event) // Define one-to-one relationship with Event entity
+    @JoinColumn({ name: "event_id",referencedColumnName:"eid" })
     event: Event;
 }

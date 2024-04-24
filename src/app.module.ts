@@ -3,9 +3,7 @@ export const myENV = require('dotenv').config();
 var dotenvExpand = require('dotenv-expand');
 var parse = require('pg-connection-string').parse;
 export const myvalue = dotenvExpand.expand(myENV).parsed;
-console.log(process.env.DB_TYPE);
 export const connectionOptions = parse(process.env.POSTGRES_URL);
-
 import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -15,7 +13,6 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentModule } from './payment/payment.module';
-import { PaymentService } from './payment/payment.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingService } from './mailing/mailing.service';
 import { LoggerMiddleware } from './common/middleware/login.middleware';
@@ -23,6 +20,7 @@ import { RolesGuard } from './common/guard/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 
 @Module({
   imports: [
@@ -33,7 +31,7 @@ import { MulterModule } from '@nestjs/platform-express';
         service: 'Gmail',
         auth: {
           user: process.env.MY_EMAIL,
-          pass: 'rxdj nweq qncm rzaf',
+          pass: process.env.EMAIL_PASS,
         },
       },
       defaults: {
@@ -49,13 +47,14 @@ import { MulterModule } from '@nestjs/platform-express';
 
     UsersModule,
     AuthModule,
-    PaymentModule,
     EventsModule,
+    PaymentModule,
+    CronJobsModule
+
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PaymentService,
     MailingService,
     {
       provide: APP_GUARD,

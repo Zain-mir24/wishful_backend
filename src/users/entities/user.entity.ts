@@ -17,6 +17,9 @@ export class User {
   email: string;
 
 
+  @Column({nullable:true})
+  customer_stripe_id:string;
+
   @Column()
   @Exclude()
   password: string;
@@ -29,6 +32,8 @@ export class User {
 
   @Column()
   refreshToken?: string;
+
+   
 
   @OneToMany(() => Event, event => event.owner,{ cascade: true })
   events: Event[];

@@ -46,7 +46,7 @@ export class AuthService {
       await this.mailerService
         .sendMail({
           to: userData.email, // list of receivers
-          from: 'zainnaeemk10@gmail.com', // sender address
+          from: process.env.MY_EMAIL, // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
           text: `Yelo apna token{accessToken}`, // plaintext body
           html: `<a href="http://localhost:3000/signup-verify/${accessToken}/${refreshToken}">Click here to verify your account</a>`, // HTML body content
@@ -87,6 +87,8 @@ export class AuthService {
           name: userData.username,
           email: email,
         });
+        console.log(customer,"HERE IS THE CUSTOMER STRIPE ID")
+        userData.customer_stripe_id=customer.id
         if (!customer) {
           throw new Error('Error adding user to stripe');
         }
