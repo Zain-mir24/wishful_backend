@@ -5,7 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from './entities/payment.entity';
 import { TEvent } from 'src/interfaces/event.types';
-import {  Event as newEvent} from 'src/events/entities/event.entity';
+import { Event as newEvent } from 'src/events/entities/event.entity';
+import { Cron, SchedulerRegistry, Interval } from '@nestjs/schedule';
 // import {Stripe as stripetype} from 'stripe'
 @Injectable()
 export class PaymentService {
@@ -13,7 +14,7 @@ export class PaymentService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<newEvent>,
-    @InjectRepository(Event)
+    @InjectRepository(Payment)
     private readonly paymentRespository: Repository<Payment>,
   ) {
     this.my_stripe = require('stripe')(process.env.STRIPE_KEY);
@@ -21,48 +22,52 @@ export class PaymentService {
   async create(createPaymentDto: CreatePaymentDto) {
     try {
       console.log(createPaymentDto);
-      const check_event:TEvent = await this.eventRepository
+      const check_event: TEvent = await this.eventRepository
         .createQueryBuilder('event')
         .leftJoinAndSelect('event.owner', 'user')
         .where('event.eid = :event_id', { event_id: createPaymentDto.event_id })
         .getOne();
       // return check_event
-      console.log(check_event)
+      console.log(check_event);
       if (!check_event) {
         throw new Error('Error finding this event');
       }
-      const customer_id=check_event.owner.customer_stripe_id;
+      const customer_id = check_event.owner.customer_stripe_id;
 
       // Current date and time
       const currentDate = new Date();
       const new_payment = await this.my_stripe.paymentMethods.create({
-   
         type: 'card',
-        card: {token: "tok_visa"}
+        card: { token: 'tok_visa' },
       });
-
+      const paymentMethod = await this.my_stripe.paymentMethods.attach(
+        new_payment.id,
+        {
+          customer: customer_id,
+        },
+      );
       if (currentDate < check_event['date']) {
         // create intent if the event is for future.
 
         const setupIntent = await this.my_stripe.setupIntents.create({
-          customer:customer_id,
-          payment_method_types: ['card'],
-          payment_method: new_payment.id,
+          customer: customer_id,
+          payment_method: paymentMethod.id,
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never',
+          },
         });
 
-      
-
-    
-        const create_payment= await this.paymentRespository.create({
+        const create_payment = await this.paymentRespository.create({
           setup_intent: setupIntent.id,
           amount: createPaymentDto.amount,
-          event: check_event
-        })
+          event: check_event,
+        });
 
-        console.log( create_payment)
-        const save_payment= await this.paymentRespository.save(create_payment);
+        console.log(create_payment);
+        const save_payment = await this.paymentRespository.save(create_payment);
 
-        return {setupIntent,save_payment};
+        return { setupIntent, save_payment };
       } else {
         // make an instanct payment
 
@@ -93,7 +98,60 @@ export class PaymentService {
       );
     }
   }
+  @Interval(24 * 60 * 60 * 1000) // 24 hours in milliseconds
+  async clearPayment() {
+    try {
+      const list_payment = await this.paymentRespository
+        .createQueryBuilder('payment')
+        .leftJoinAndSelect('payment.event', 'event')
+        .getMany();
+      console.log(list_payment);
+      const paymentCleared = await Promise.all(
+        list_payment.length &&
+          list_payment.map(
+            async (item: {
+              pid: number;
+              setup_intent: string;
+              amount: number;
+              event: newEvent;
+            }) => {
+              const current_date = new Date();
 
+              const payment_data = new Date(item.event.date);
+              current_date.setHours(0, 0, 0, 0);
+              payment_data.setHours(0, 0, 0, 0);
+
+              if (current_date.getTime() === payment_data.getTime()) {
+                const retrieve_intent =
+                  await this.my_stripe.setupIntents.retrieve(item.setup_intent);
+                const retrieve_paymentMethod =
+                  await this.my_stripe.paymentMethods.retrieve(
+                    retrieve_intent.payment_method,
+                  );
+                const createpayment =
+                  await this.my_stripe.paymentIntents.create({
+                    amount: item.amount, // amount in cents
+                    currency: 'usd',
+                    payment_method: retrieve_paymentMethod.id,
+                    customer: retrieve_paymentMethod.customer,
+                    automatic_payment_methods: {
+                      enabled: true,
+                      allow_redirects: 'never',
+                    },
+                    confirm: true, // Do not confirm the payment intent immediately
+                  });
+                return { retrieve_paymentMethod, list_payment, createpayment };
+              }
+              return item;
+            },
+          ),
+      );
+      return paymentCleared;
+    } catch (e) {
+      console.log(e);
+      return e;
+    }
+  }
   findAll() {
     return `This action returns all payment`;
   }

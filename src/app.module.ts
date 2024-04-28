@@ -21,11 +21,15 @@ import { APP_GUARD } from '@nestjs/core';
 import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
-
+import {  ScheduleModule } from "@nestjs/schedule";
 @Module({
   imports: [
+    
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({ ...typeOrmConfig, autoLoadEntities: true }),
+    
+    ScheduleModule.forRoot(),
+
     MailerModule.forRoot({
       transport: {
         service: 'Gmail',
@@ -44,7 +48,6 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
         files: 5, // Maximum number of files
       },
     }),
-
     UsersModule,
     AuthModule,
     EventsModule,

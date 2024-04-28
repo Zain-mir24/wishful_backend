@@ -12,6 +12,11 @@ export class PaymentController {
     return this.paymentService.create(createPaymentDto);
   }
 
+  @Post('clearPayment')
+  clearPayment() {
+    return this.paymentService.clearPayment();
+  }
+
   @Get()
   findAll() {
     return this.paymentService.findAll();
