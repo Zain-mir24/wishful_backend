@@ -21,13 +21,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
-import {  ScheduleModule } from "@nestjs/schedule";
+import { ScheduleModule } from "@nestjs/schedule";
 @Module({
   imports: [
-    
+
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({ ...typeOrmConfig, autoLoadEntities: true }),
-    
+
     ScheduleModule.forRoot(),
 
     MailerModule.forRoot({
@@ -70,9 +70,12 @@ export class AppModule {
     consumer
       .apply(LoggerMiddleware)
       .exclude(
+        {
+          path: '/api', method: RequestMethod.ALL
+        },
         { path: 'auth/sign-up', method: RequestMethod.POST },
         { path: 'auth/login', method: RequestMethod.POST },
-        {path:"/",method:RequestMethod.ALL}
+        { path: "/", method: RequestMethod.ALL }
       ).forRoutes('*');
   }
 }
