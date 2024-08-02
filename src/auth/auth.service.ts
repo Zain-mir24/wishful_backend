@@ -58,7 +58,7 @@ export class AuthService {
           console.log(e, 'ERRRORR');
         });
       return {
-        Message: 'Check email to verify your signup',
+        message: 'Check email to verify your signup',
       };
     } catch (e) {
       throw new HttpException(
@@ -79,16 +79,21 @@ export class AuthService {
       console.log(process.env.STRIPE_KEY);
       console.log(process.env.STRIPE_TEST_KEY);
       const verify = jwt.verify(token, process.env.SECRET_KEY);
+      const email = verify.user_email;
+      let userData = await this.usersService.findByEmail(email);
+      if(!!userData.verified)
+         return {
+        message:"user already verified",
+        status:HttpStatus.CONFLICT
+      }
       if (verify) {
-        const email = verify.user_email;
-        let userData = await this.usersService.findByEmail(email);
         userData.verified = true;
         const customer = await stripe.customers.create({
           name: userData.username,
           email: email,
         });
-        console.log(customer,"HERE IS THE CUSTOMER STRIPE ID")
-        userData.customer_stripe_id=customer.id
+        console.log(customer, "HERE IS THE CUSTOMER STRIPE ID")
+        userData.customer_stripe_id = customer.id;
         if (!customer) {
           throw new Error('Error adding user to stripe');
         }
@@ -100,6 +105,8 @@ export class AuthService {
         }
         return {
           message: 'User Verified',
+          userInfo: userData,
+          status: HttpStatus.CREATED
         };
       } else {
         throw new Exception('Token expireed');
@@ -121,38 +128,53 @@ export class AuthService {
   async login(userData: userDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
-      
-      if (user && user.verified) {
-        const validate = await bcrypt.compare(userData.password, user.password);
-        console.log(validate);
-        if (validate) {
-          const accessToken = jwt.sign(
-            { user_email: userData.email },
-            process.env.SECRET_KEY,
-            { expiresIn: '1d' },
-          );
-          const refreshToken = jwt.sign(
-            { user_email: userData.email },
-            process.env.SECRET_REFRESH_KEY,
-            { expiresIn: '1d' },
-          );
-          user.accessToken = accessToken;
-          user.refreshToken = refreshToken;
-
-          await this.usersService.update(user.id, user);
-
-          delete user.password;
-          return {
-            MESSAGE: 'SUCCESSFULLY LOGGED IN',
-            User: user,
-          };
-        } else {
-          return 'INCORRECT CREDENTIAL';
-        }
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
-      return 'USER NOT VERIFIED';
+
+      if (!user.verified) {
+        throw new HttpException('User not verified', HttpStatus.NON_AUTHORITATIVE_INFORMATION);
+      }
+
+      const validate = await bcrypt.compare(userData.password, user.password);
+      console.log("validate", validate);
+
+
+      if (!validate) {
+        throw new HttpException('Incorrect credentials', HttpStatus.UNAUTHORIZED);
+      }
+
+      const accessToken = jwt.sign(
+        { user_email: userData.email },
+        process.env.SECRET_KEY,
+        { expiresIn: '1d' },
+      );
+      const refreshToken = jwt.sign(
+        { user_email: userData.email },
+        process.env.SECRET_REFRESH_KEY,
+        { expiresIn: '1d' },
+      );
+      user.accessToken = accessToken;
+      user.refreshToken = refreshToken;
+
+      await this.usersService.update(user.id, user);
+
+      delete user.password;
+      return {
+        message: 'SUCCESSFULLY LOGGED IN',
+        user: user,
+        status: HttpStatus.OK
+      };
+
+
     } catch (e) {
-      return 'INCORRECT CREDENTIAL';
+      throw new HttpException(
+        {
+          status: e.status||HttpStatus.BAD_REQUEST,
+          error: e.message || e,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

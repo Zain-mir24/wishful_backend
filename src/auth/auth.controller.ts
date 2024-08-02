@@ -8,7 +8,9 @@ import {
   Delete,
   Req,
   HttpStatus,
-  UseInterceptors,ClassSerializerInterceptor
+  UseInterceptors,ClassSerializerInterceptor,
+  HttpException,
+  HttpCode
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -16,7 +18,7 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { userDto } from './dto/user-login.dto';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { Request } from 'express';
+import { Request,Response } from 'express';
 import { ApiResponse } from '@nestjs/swagger';
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -38,9 +40,16 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   @ApiResponse({ status: HttpStatus.OK, description: 'Loggedin' })
-  create(@Body() userData: userDto) {
-    return this.authService.login(userData);
+  async create(@Body() userData: userDto) {
+    try {
+      const userLogin = await this.authService.login(userData);
+      return userLogin;
+
+    } catch (e) {
+      throw new HttpException(e.response.error, e.response.status)
+    }
   }
 
   @Get('/refresh')
