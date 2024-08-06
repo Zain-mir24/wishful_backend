@@ -1,15 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete ,
+  Req,
+
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { Request } from 'express';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentService.create(createPaymentDto);
+  create(@Body() createPaymentDto: CreatePaymentDto,@Req() req: Request) {
+    const user = req['user'];
+
+    const {userId,...other}=user;
+    return this.paymentService.create(userId,createPaymentDto);
   }
 
   @Post('clearPayment')

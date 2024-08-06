@@ -5,9 +5,11 @@ import { User } from 'src/users/entities/user.entity';
 import { Event } from './entities/event.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
+import { Payment } from 'src/payment/entities/payment.entity';
+import { PaymentService } from 'src/payment/payment.service';
 @Module({
-  imports:[TypeOrmModule.forFeature([User,Event])],
+  imports:[TypeOrmModule.forFeature([User,Event,Payment])],
   controllers: [EventsController],
-  providers: [EventsService,UsersService],
+  providers: [EventsService,UsersService,PaymentService],
 })
 export class EventsModule {}

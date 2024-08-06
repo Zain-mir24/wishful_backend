@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
-  UseInterceptors, ClassSerializerInterceptor,Query
+  UseInterceptors, ClassSerializerInterceptor,Query,
+  Req,
+  HttpCode
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,11 +19,14 @@ import { Roles } from 'src/common/roles.decorator';
 import { Role } from 'src/common/role.enum';
 import { PageOptionsDto } from 'src/common/dtos';
 import { PageDto } from '../common/page.dto';
+import { Request } from 'express';
+import { PaymentService } from 'src/payment/payment.service';
+
 @Controller('users')
 @UseGuards(RolesGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService,private readonly paymentService:PaymentService) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -32,6 +37,22 @@ export class UsersController {
   @Roles(Role.Admin)
   findAll(@Query() pageOptionsDto: PageOptionsDto) {
     return this.usersService.findAll(pageOptionsDto);
+  }
+
+  @Get('/me/gifts')
+  @Roles(Role.User)
+  @HttpCode(200)
+  findMyPayments(@Req() req: Request){
+    try{
+      const user = req['user'];
+      console.log("user",user);
+      const {userId,...other}=user
+      const getPayments=this.paymentService.findMyPayments(userId);
+      return;
+    }catch(e){
+
+    }
+    
   }
 
   @Get(':id')

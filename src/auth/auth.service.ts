@@ -145,12 +145,12 @@ export class AuthService {
       }
 
       const accessToken = jwt.sign(
-        { user_email: userData.email },
+        { userEmail: userData.email ,userId:user.id},
         process.env.SECRET_KEY,
         { expiresIn: '1d' },
       );
       const refreshToken = jwt.sign(
-        { user_email: userData.email },
+        { userEmail: userData.email,userId:user.id },
         process.env.SECRET_REFRESH_KEY,
         { expiresIn: '1d' },
       );

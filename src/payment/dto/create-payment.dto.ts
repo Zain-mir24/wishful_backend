@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CreatePaymentEventDto } from 'src/events/dto/create-payment-event.dto';
 
 export class CreatePaymentDto {
   @ApiProperty()
-  event_id: number;
+  eventId: number;
   @ApiProperty()
   number: string;
   @ApiProperty()
@@ -12,5 +13,5 @@ export class CreatePaymentDto {
   @ApiProperty()
   cvc: string;
   @ApiProperty()
-  amount:number
+  amount:number;
 }

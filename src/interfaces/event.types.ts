@@ -15,14 +15,14 @@ export interface TEvent {
     date: any; // consider using Date type if you prefer
     event_name: string;
     event_url: string;
-    reciever_email: string;
     image: string;
     event_description: string;
-    gift_message: string;
-    gift_amount: number;
-    gift_from: string;
-    country: string;
     created_at: Date; // or you can use Date type if you prefer
     updated_at: Date; // or you can use Date type if you prefer
     owner: User;
+    // gift_message: string;
+    // gift_amount: number;
+    // gift_from: string;
+    // country: string;
+ 
 }

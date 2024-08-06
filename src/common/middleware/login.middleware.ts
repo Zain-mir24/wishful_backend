@@ -8,11 +8,16 @@ export class LoggerMiddleware implements NestMiddleware {
     try {
       let authToken = req.headers.authorization;
       console.log(authToken)
-       const verify= jwt.verify(authToken, process.env.SECRET_KEY);
-       console.log(verify)
-     if(verify) next();
+      const verify = jwt.verify(authToken, process.env.SECRET_KEY);
+      if (!verify) {
+        throw new HttpException('Invalid token', HttpStatus.FORBIDDEN);
+      }
+      console.log(verify);
+      req['user'] = verify;
+
+      next();
     } catch (e) {
-      console.log(e)
+      console.log("ERROR IN MIDDLEWARE",e)
       throw new HttpException(e, HttpStatus.FORBIDDEN);
     }
   }

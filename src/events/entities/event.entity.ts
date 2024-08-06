@@ -24,30 +24,19 @@ export class Event {
   @Column({nullable:true})
   event_url: string;
 
-  @Column({nullable:true})
-  reciever_email: string;
-
   @Column()
   image: string;
 
   @Column()
   event_description: string;
 
-  @Column()
-  gift_message: string;
-
-  @Column()
-  gift_amount: number;
-
-  @Column()
-  gift_from: string;
-
-  @Column()
-  country: string;
+ 
+  @Column({nullable:true})
+  amount_collected:number;
 
 
   @ManyToOne(()=>User )
-  @JoinColumn({name:"user_id",referencedColumnName: 'id'})
+  @JoinColumn({name:"userId",referencedColumnName: 'id'})
   owner:User;
 
 

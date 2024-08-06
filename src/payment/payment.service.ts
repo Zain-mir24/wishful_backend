@@ -19,13 +19,15 @@ export class PaymentService {
   ) {
     this.my_stripe = require('stripe')(process.env.STRIPE_KEY);
   }
-  async create(createPaymentDto: CreatePaymentDto) {
+
+  // id of the user creating the payment
+  async create(id:number,createPaymentDto: CreatePaymentDto) {
     try {
       console.log(createPaymentDto);
       const check_event: TEvent = await this.eventRepository
         .createQueryBuilder('event')
         .leftJoinAndSelect('event.owner', 'user')
-        .where('event.eid = :event_id', { event_id: createPaymentDto.event_id })
+        .where('event.eid = :eventId', { event_id: createPaymentDto.eventId })
         .getOne();
       // return check_event
       console.log(check_event);
@@ -46,31 +48,27 @@ export class PaymentService {
           customer: customer_id,
         },
       );
-      if (currentDate < check_event['date']) {
-        // create intent if the event is for future.
 
-        const setupIntent = await this.my_stripe.setupIntents.create({
-          customer: customer_id,
-          payment_method: paymentMethod.id,
-          automatic_payment_methods: {
-            enabled: true,
-            allow_redirects: 'never',
-          },
-        });
+      const setupIntent = await this.my_stripe.setupIntents.create({
+        customer: customer_id,
+        payment_method: paymentMethod.id,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+      });
+      const create_payment = await this.paymentRespository.create({
+        setup_intent: setupIntent.id,
+        amount: createPaymentDto.amount,
+        event: check_event,
+        sender:id
+      });
 
-        const create_payment = await this.paymentRespository.create({
-          setup_intent: setupIntent.id,
-          amount: createPaymentDto.amount,
-          event: check_event,
-        });
-
-        console.log(create_payment);
-        const save_payment = await this.paymentRespository.save(create_payment);
-
-        return { setupIntent, save_payment };
-      } else {
+      console.log(create_payment);
+      const save_payment = await this.paymentRespository.save(create_payment);
+      
+      if (currentDate === check_event['date']) {        
         // make an instanct payment
-
         //Immediate payment for this customer
 
         const createpayment = await this.my_stripe.paymentIntents.create({
@@ -84,6 +82,7 @@ export class PaymentService {
 
         // const create_payment=await this.paymentRespository.cr
       }
+      return { setupIntent, save_payment };
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -151,6 +150,10 @@ export class PaymentService {
       console.log(e);
       return e;
     }
+  }
+
+  async findMyPayments(id:number){
+
   }
   findAll() {
     return `This action returns all payment`;

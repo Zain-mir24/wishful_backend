@@ -29,11 +29,13 @@ export class AuthController {
   ) {}
 
   @Post('sign-up')
+  @HttpCode(201)
   async signUp(@Body() registerUserDto: CreateUserDto) {
     return this.authService.signUp(registerUserDto);
   }
 
   @Get('sign-up/confirm')
+  @HttpCode(200)
   async signUpConfirm(@Req() request: Request) {
     const token = request.headers.authorization;
     return this.authService.verify(token);
