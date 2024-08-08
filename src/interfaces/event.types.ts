@@ -19,7 +19,7 @@ export interface TEvent {
     event_description: string;
     created_at: Date; // or you can use Date type if you prefer
     updated_at: Date; // or you can use Date type if you prefer
-    owner: User;
+    owner?: User;
     // gift_message: string;
     // gift_amount: number;
     // gift_from: string;

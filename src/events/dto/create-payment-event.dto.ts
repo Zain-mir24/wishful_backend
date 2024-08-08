@@ -1,9 +1,5 @@
 import { ApiProperty} from '@nestjs/swagger';
 export class CreatePaymentEventDto {
-
-    @ApiProperty()
-    event_id: number;
-
     @ApiProperty()
     gift_message: string;
 

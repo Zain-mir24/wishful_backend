@@ -16,7 +16,7 @@ export class PaymentController {
     const user = req['user'];
 
     const {userId,...other}=user;
-    return this.paymentService.create(userId,createPaymentDto);
+    // return this.paymentService.create(userId,createPaymentDto);
   }
 
   @Post('clearPayment')

@@ -14,4 +14,6 @@ export class CreatePaymentDto {
   cvc: string;
   @ApiProperty()
   amount:number;
+  @ApiProperty()
+  country:string;
 }

@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, ClassSerializerInterceptor, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, ClassSerializerInterceptor, UseInterceptors, Put } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Request } from 'express';
+import { CreatePaymentEventDto } from './dto/create-payment-event.dto';
+import { Role } from 'src/common/role.enum';
+import { Roles } from 'src/common/roles.decorator';
 
 @Controller('events')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -12,6 +15,8 @@ export class EventsController {
 
   @Post()
   @HttpCode(201)
+  @Roles(Role.User)
+
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
@@ -23,6 +28,7 @@ export class EventsController {
 
   // get all events of a user
   @Get('/myevents')
+  @Roles(Role.User)
   @HttpCode(200)
   findByUser(@Req() request: Request) {
     const user = request['user'];
@@ -31,7 +37,18 @@ export class EventsController {
     return this.eventsService.findByUser(userId);
   }
 
+
+  @Put('confirmPayment/:id')
+  @Roles(Role.User)
+  @HttpCode(201)
+  async confirmPayment(@Param('id') id: number, @Req() request: Request,@Body () body:CreatePaymentEventDto) {
+    
+    return this.eventsService.confirmPayment(id,body);
+  }
+
   @Get(':id')
+  @Roles(Role.User)
+  @HttpCode(200)
   findOne(@Param('id') id: string) {
     return this.eventsService.findOne(+id);
   }

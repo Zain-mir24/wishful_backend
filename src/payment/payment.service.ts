@@ -20,28 +20,31 @@ export class PaymentService {
     this.my_stripe = require('stripe')(process.env.STRIPE_KEY);
   }
 
-  // id of the user creating the payment
-  async create(id:number,createPaymentDto: CreatePaymentDto) {
+  // Id of the user creating the payment
+  async create(id: number, customer_id: string, createPaymentDto: CreatePaymentDto) {
     try {
       console.log(createPaymentDto);
+
       const check_event: TEvent = await this.eventRepository
         .createQueryBuilder('event')
         .leftJoinAndSelect('event.owner', 'user')
-        .where('event.eid = :eventId', { event_id: createPaymentDto.eventId })
+        .where('event.eid = :eventId', { eventId: createPaymentDto.eventId })
         .getOne();
-      // return check_event
+
       console.log(check_event);
+
       if (!check_event) {
         throw new Error('Error finding this event');
       }
-      const customer_id = check_event.owner.customer_stripe_id;
 
       // Current date and time
       const currentDate = new Date();
+
       const new_payment = await this.my_stripe.paymentMethods.create({
         type: 'card',
         card: { token: 'tok_visa' },
       });
+
       const paymentMethod = await this.my_stripe.paymentMethods.attach(
         new_payment.id,
         {
@@ -57,30 +60,50 @@ export class PaymentService {
           allow_redirects: 'never',
         },
       });
+   
+
+      const sendGift =
+      await this.my_stripe.paymentIntents.create({
+        amount: createPaymentDto.amount, // amount in cents
+        currency: 'usd',
+        payment_method: paymentMethod.id,
+        payment_method_types: ['card'],
+        customer:customer_id,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+        confirm: true, // Do not confirm the payment intent immediately
+      });
+
+      console.log("sendGift",sendGift);
+
+
       const create_payment = await this.paymentRespository.create({
         setup_intent: setupIntent.id,
         amount: createPaymentDto.amount,
         event: check_event,
-        sender:id
+        sender: id
       });
 
       console.log(create_payment);
+
       const save_payment = await this.paymentRespository.save(create_payment);
-      
-      if (currentDate === check_event['date']) {        
+
+      if (currentDate === check_event['date']) {
         // make an instanct payment
+        // return check_event
         //Immediate payment for this customer
 
         const createpayment = await this.my_stripe.paymentIntents.create({
           amount: createPaymentDto.amount, // amount in cents
           currency: 'usd',
           payment_method_types: ['card'],
-          // customer: 'customerId',
+          customer: 'customerId',
           confirm: true, // Do not confirm the payment intent immediately
         });
         return createpayment;
 
-        // const create_payment=await this.paymentRespository.cr
       }
       return { setupIntent, save_payment };
     } catch (e) {
