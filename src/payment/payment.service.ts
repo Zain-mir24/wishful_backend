@@ -64,15 +64,15 @@ export class PaymentService {
 
       const sendGift =
       await this.my_stripe.paymentIntents.create({
-        amount: createPaymentDto.amount, // amount in cents
+        amount: createPaymentDto.gift_amount, // amount in cents
         currency: 'usd',
         payment_method: paymentMethod.id,
         payment_method_types: ['card'],
         customer:customer_id,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
-        },
+        // automatic_payment_methods: {
+        //   enabled: true,
+        //   allow_redirects: 'never',
+        // },
         confirm: true, // Do not confirm the payment intent immediately
       });
 
@@ -81,9 +81,11 @@ export class PaymentService {
 
       const create_payment = await this.paymentRespository.create({
         setup_intent: setupIntent.id,
-        amount: createPaymentDto.amount,
+        amount: createPaymentDto.gift_amount,
         event: check_event,
-        sender: id
+        sender: id,
+        gift_message: createPaymentDto.gift_message,
+        country: createPaymentDto.country,
       });
 
       console.log(create_payment);
@@ -96,7 +98,7 @@ export class PaymentService {
         //Immediate payment for this customer
 
         const createpayment = await this.my_stripe.paymentIntents.create({
-          amount: createPaymentDto.amount, // amount in cents
+          amount: createPaymentDto.gift_amount, // amount in cents
           currency: 'usd',
           payment_method_types: ['card'],
           customer: 'customerId',

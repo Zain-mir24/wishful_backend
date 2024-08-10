@@ -6,6 +6,9 @@ import { Request } from 'express';
 import { CreatePaymentEventDto } from './dto/create-payment-event.dto';
 import { Role } from 'src/common/role.enum';
 import { Roles } from 'src/common/roles.decorator';
+import { ApiResponse } from '@nestjs/swagger';
+import { TEvent } from 'src/interfaces/event.types';
+import { EventClass } from './classes/event.class';
 
 @Controller('events')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -49,6 +52,11 @@ export class EventsController {
   @Get(':id')
   @Roles(Role.User)
   @HttpCode(200)
+  @ApiResponse({
+    description: "Success",
+    type: EventClass,
+    status: 200
+  })
   findOne(@Param('id') id: string) {
     return this.eventsService.findOne(+id);
   }

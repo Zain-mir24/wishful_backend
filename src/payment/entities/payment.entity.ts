@@ -8,8 +8,6 @@ export class Payment {
     @PrimaryGeneratedColumn()
     pid:number;
 
-    @Column()
-    name:string;
 
     @Column({nullable:true})
     setup_intent:string;

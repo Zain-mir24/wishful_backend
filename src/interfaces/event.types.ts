@@ -12,7 +12,7 @@ interface User {
 
 export interface TEvent {
     eid: number;
-    date: any; // consider using Date type if you prefer
+    date: any|string; // consider using Date type if you prefer
     event_name: string;
     event_url: string;
     image: string;
@@ -26,3 +26,4 @@ export interface TEvent {
     // country: string;
  
 }
+

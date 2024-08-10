@@ -107,16 +107,17 @@ export class EventsService {
 
   async confirmPayment(id: number, body:CreatePaymentEventDto) {
     try{
-      const { userId,exp_month,exp_year,amount,cvc,number,country}=body;
+      const { userId,exp_month,exp_year,gift_amount,cvc,number,country,gift_message}=body;
 
       const paymentData:CreatePaymentDto = {
         eventId:id,
         exp_month,
         exp_year,
-        amount,
+        gift_amount,
         cvc,
         number,
-        country
+        country,
+        gift_message
       };
 
       const getUserData = await this.usersService.findOne(userId);
@@ -162,6 +163,7 @@ export class EventsService {
       // }
       const event = await this.eventRepository
         .createQueryBuilder('event')
+        .leftJoinAndSelect('event.owner', 'owner')
         .where('event.eid = :id', { id: id })
         .getOne();
 
