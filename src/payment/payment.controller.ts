@@ -1,22 +1,30 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete ,
   Req,
+  HttpCode,
 
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+import { CreatePaymentEventDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Request } from 'express';
-
+import { Roles } from 'src/common/roles.decorator';
+import { Role } from 'src/common/role.enum';
+import { ApiResponse } from '@nestjs/swagger';
+import { EventClass } from './classes/payment-create.class';
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto,@Req() req: Request) {
-    const user = req['user'];
-
-    const {userId,...other}=user;
-    // return this.paymentService.create(userId,createPaymentDto);
+  @Roles(Role.User)
+  @HttpCode(200)
+  @ApiResponse({
+    description: "Success",
+    type: EventClass,
+    status: 200
+  })  create(@Body() createPayment: CreatePaymentEventDto,@Req() req: Request) {
+   
+    return this.paymentService.create(createPayment);
   }
 
   @Post('clearPayment')

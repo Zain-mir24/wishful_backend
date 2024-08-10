@@ -8,15 +8,11 @@ export class Payment {
     @PrimaryGeneratedColumn()
     pid:number;
 
-
-    @Column({nullable:true})
-    setup_intent:string;
-
     @Column()
     country:string;
 
     @Column()
-    amount:number;
+    gift_amount:number;
     
     @Column()
     gift_message:string;

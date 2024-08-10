@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+import { CreatePaymentEventDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,15 +20,53 @@ export class PaymentService {
     this.my_stripe = require('stripe')(process.env.STRIPE_KEY);
   }
 
-  // Id of the user creating the payment
-  async create(id: number, customer_id: string, createPaymentDto: CreatePaymentDto) {
+
+  async create( createPaymentDto: CreatePaymentEventDto) {
     try {
-      console.log(createPaymentDto);
+      const { eventId, ...others } = createPaymentDto;
+      const event = await this.eventRepository
+        .createQueryBuilder('event')
+        .leftJoinAndSelect('event.owner', 'user')
+        .where('event.eid = :eventId', { eventId: eventId })
+        .getOne();
+      if (!event) {
+        throw new Error('Error finding this event');
+      }
+
+      const payment = this.paymentRespository.create({
+        gift_amount: others.gift_amount,
+          event: event,
+          sender: others.userId,
+          gift_message: others.gift_message,
+          country: others.country,
+      });   
+
+      // Save the event and the user to persist the changes
+      const save_payment = await this.paymentRespository.save(payment);
+      return {
+        status: 200,
+        message: 'Payment created',
+        data: save_payment,
+      };  
+
+    } catch (e) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: e.message,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: e
+      });
+    }
+  }
+
+
+  async createPaymentIntent( customer_id: string, eventId:number,gift_amount:number) {
+    try {
 
       const check_event: TEvent = await this.eventRepository
         .createQueryBuilder('event')
         .leftJoinAndSelect('event.owner', 'user')
-        .where('event.eid = :eventId', { eventId: createPaymentDto.eventId })
+        .where('event.eid = :eventId', { eventId: eventId})
         .getOne();
 
       console.log(check_event);
@@ -37,77 +75,77 @@ export class PaymentService {
         throw new Error('Error finding this event');
       }
 
-      // Current date and time
-      const currentDate = new Date();
+      // // Current date and time
+      // const currentDate = new Date();
 
-      const new_payment = await this.my_stripe.paymentMethods.create({
-        type: 'card',
-        card: { token: 'tok_visa' },
-      });
+      // const new_payment = await this.my_stripe.paymentMethods.create({
+      //   type: 'card',
+      //   card: { token: 'tok_visa' },
+      // });
 
-      const paymentMethod = await this.my_stripe.paymentMethods.attach(
-        new_payment.id,
-        {
-          customer: customer_id,
-        },
-      );
+      // const paymentMethod = await this.my_stripe.paymentMethods.attach(
+      //   new_payment.id,
+      //   {
+      //     customer: customer_id,
+      //   },
+      // );
 
-      const setupIntent = await this.my_stripe.setupIntents.create({
-        customer: customer_id,
-        payment_method: paymentMethod.id,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
-        },
-      });
+      // const setupIntent = await this.my_stripe.setupIntents.create({
+      //   customer: customer_id,
+      //   payment_method: paymentMethod.id,
+      //   automatic_payment_methods: {
+      //     enabled: true,
+      //     allow_redirects: 'never',
+      //   },
+      // });
    
 
       const sendGift =
       await this.my_stripe.paymentIntents.create({
-        amount: createPaymentDto.gift_amount, // amount in cents
+        amount: gift_amount, // amount in cents
         currency: 'usd',
-        payment_method: paymentMethod.id,
-        payment_method_types: ['card'],
+        // payment_method: paymentMethod.id,
+        // payment_method_types: ['card'],
         customer:customer_id,
-        // automatic_payment_methods: {
-        //   enabled: true,
-        //   allow_redirects: 'never',
-        // },
-        confirm: true, // Do not confirm the payment intent immediately
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+        confirm: false, // Do not confirm the payment intent immediately
       });
 
       console.log("sendGift",sendGift);
 
 
-      const create_payment = await this.paymentRespository.create({
-        setup_intent: setupIntent.id,
-        amount: createPaymentDto.gift_amount,
-        event: check_event,
-        sender: id,
-        gift_message: createPaymentDto.gift_message,
-        country: createPaymentDto.country,
-      });
+      // const create_payment = await this.paymentRespository.create({
+      //   setup_intent: setupIntent.id,
+      //   amount: createPaymentDto.gift_amount,
+      //   event: check_event,
+      //   sender: id,
+      //   gift_message: createPaymentDto.gift_message,
+      //   country: createPaymentDto.country,
+      // });
 
-      console.log(create_payment);
+      // console.log(create_payment);
 
-      const save_payment = await this.paymentRespository.save(create_payment);
+      // const save_payment = await this.paymentRespository.save(create_payment);
 
-      if (currentDate === check_event['date']) {
-        // make an instanct payment
-        // return check_event
-        //Immediate payment for this customer
+      // if (currentDate === check_event['date']) {
+      //   // make an instanct payment
+      //   // return check_event
+      //   //Immediate payment for this customer
 
-        const createpayment = await this.my_stripe.paymentIntents.create({
-          amount: createPaymentDto.gift_amount, // amount in cents
-          currency: 'usd',
-          payment_method_types: ['card'],
-          customer: 'customerId',
-          confirm: true, // Do not confirm the payment intent immediately
-        });
-        return createpayment;
+      //   const createpayment = await this.my_stripe.paymentIntents.create({
+      //     amount: createPaymentDto.gift_amount, // amount in cents
+      //     currency: 'usd',
+      //     payment_method_types: ['card'],
+      //     customer: 'customerId',
+      //     confirm: true, // Do not confirm the payment intent immediately
+      //   });
+      //   return createpayment;
 
-      }
-      return { setupIntent, save_payment };
+      // }
+      return sendGift;
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -135,8 +173,7 @@ export class PaymentService {
           list_payment.map(
             async (item: {
               pid: number;
-              setup_intent: string;
-              amount: number;
+              gift_amount: number;
               event: newEvent;
             }) => {
               const current_date = new Date();
@@ -145,27 +182,27 @@ export class PaymentService {
               current_date.setHours(0, 0, 0, 0);
               payment_data.setHours(0, 0, 0, 0);
 
-              if (current_date.getTime() === payment_data.getTime()) {
-                const retrieve_intent =
-                  await this.my_stripe.setupIntents.retrieve(item.setup_intent);
-                const retrieve_paymentMethod =
-                  await this.my_stripe.paymentMethods.retrieve(
-                    retrieve_intent.payment_method,
-                  );
-                const createpayment =
-                  await this.my_stripe.paymentIntents.create({
-                    amount: item.amount, // amount in cents
-                    currency: 'usd',
-                    payment_method: retrieve_paymentMethod.id,
-                    customer: retrieve_paymentMethod.customer,
-                    automatic_payment_methods: {
-                      enabled: true,
-                      allow_redirects: 'never',
-                    },
-                    confirm: true, // Do not confirm the payment intent immediately
-                  });
-                return { retrieve_paymentMethod, list_payment, createpayment };
-              }
+              // if (current_date.getTime() === payment_data.getTime()) {
+              //   const retrieve_intent =
+              //     await this.my_stripe.setupIntents.retrieve(item.setup_intent);
+              //   const retrieve_paymentMethod =
+              //     await this.my_stripe.paymentMethods.retrieve(
+              //       retrieve_intent.payment_method,
+              //     );
+              //   const createpayment =
+              //     await this.my_stripe.paymentIntents.create({
+              //       amount: item.amount, // amount in cents
+              //       currency: 'usd',
+              //       payment_method: retrieve_paymentMethod.id,
+              //       customer: retrieve_paymentMethod.customer,
+              //       automatic_payment_methods: {
+              //         enabled: true,
+              //         allow_redirects: 'never',
+              //       },
+              //       confirm: true, // Do not confirm the payment intent immediately
+              //     });
+              //   return { retrieve_paymentMethod, list_payment, createpayment };
+              // }
               return item;
             },
           ),

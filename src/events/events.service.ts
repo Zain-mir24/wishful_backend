@@ -7,9 +7,9 @@ import { Event } from './entities/event.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { PaymentService } from 'src/payment/payment.service';
-import { CreatePaymentEventDto } from './dto/create-payment-event.dto';
+import { CreatePaymentEventDto } from   '../payment/dto/create-payment.dto';
 import { TEvent } from 'src/interfaces/event.types';
-import { CreatePaymentDto } from 'src/payment/dto/create-payment.dto';
+import { CreateGiftDto } from 'src/payment/dto/create-payment-intent.dto';
 let stripe = require('stripe')(process.env.STRIPE_KEY); 
 @Injectable()
 export class EventsService {
@@ -105,21 +105,11 @@ export class EventsService {
   }
 
 
-  async confirmPayment(id: number, body:CreatePaymentEventDto) {
+  async createPaymentIntent(id: number, body:CreateGiftDto) {
     try{
-      const { userId,exp_month,exp_year,gift_amount,cvc,number,country,gift_message}=body;
+      const { userId,gift_amount}=body;
 
-      const paymentData:CreatePaymentDto = {
-        eventId:id,
-        exp_month,
-        exp_year,
-        gift_amount,
-        cvc,
-        number,
-        country,
-        gift_message
-      };
-
+     
       const getUserData = await this.usersService.findOne(userId);
 
       if (!getUserData) {
@@ -130,7 +120,7 @@ export class EventsService {
       
       const customerStripeId = getUserData['customer_stripe_id'];
 
-      const createPayment = await this.paymentService.create(userId, customerStripeId,paymentData);
+      const createPayment = await this.paymentService.createPaymentIntent(customerStripeId,id,gift_amount);
 
       return createPayment;
 

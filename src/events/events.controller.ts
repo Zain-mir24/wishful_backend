@@ -3,12 +3,13 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Request } from 'express';
-import { CreatePaymentEventDto } from './dto/create-payment-event.dto';
+import { CreatePaymentEventDto } from   '../payment/dto/create-payment.dto';
 import { Role } from 'src/common/role.enum';
 import { Roles } from 'src/common/roles.decorator';
 import { ApiResponse } from '@nestjs/swagger';
 import { TEvent } from 'src/interfaces/event.types';
 import { EventClass } from './classes/event.class';
+import { CreateGiftDto } from 'src/payment/dto/create-payment-intent.dto';
 
 @Controller('events')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -41,12 +42,12 @@ export class EventsController {
   }
 
 
-  @Put('confirmPayment/:id')
+  @Put('createPaymentIntent/:id')
   @Roles(Role.User)
   @HttpCode(201)
-  async confirmPayment(@Param('id') id: number, @Req() request: Request,@Body () body:CreatePaymentEventDto) {
+  async createPaymentIntent(@Param('id') id: number, @Req() request: Request,@Body () body:CreateGiftDto) {
     
-    return this.eventsService.confirmPayment(id,body);
+    return this.eventsService.createPaymentIntent(id,body);
   }
 
   @Get(':id')
