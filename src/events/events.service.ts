@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -179,9 +179,38 @@ export class EventsService {
     }
   }
 
-  update(id: number, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
-  }
+  async update(id: number, updateEventDto: UpdateEventDto): Promise<{message:string,data:TEvent,status:number}> {
+    try {
+      // Find the event by ID
+      const event = await this.eventRepository.findOne({ where: {eid: id } });
+
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${id} not found`);
+      }
+      if(updateEventDto.userId){
+        throw new Error('User id cannot be changed');
+      }
+
+      // Update the event with the new data
+      Object.assign(event, updateEventDto);
+
+      // Save the updated event back to the database
+      const updated_event= await this.eventRepository.save(event);
+      return {
+        message: "Success",
+        data: updated_event,
+        status: 200
+      }
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: error.message,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: error
+      });
+    }
+  
+}
 
   remove(id: number) {
     return `This action removes a #${id} event`;

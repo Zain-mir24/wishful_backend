@@ -17,12 +17,32 @@ import { CreateGiftDto } from 'src/payment/dto/create-payment-intent.dto';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
+  /**
+ * Creates a new event.
+ *
+ * @param {CreateEventDto} createEventDto - The data for the new event.
+ * @return {Promise} The newly created event data.
+ */
   @Post()
   @HttpCode(201)
   @Roles(Role.User)
 
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
+  }
+    /**
+   * Updates an existing event.
+   *
+   * @param {string} id - The ID of the event to be updated.
+   * @param {UpdateEventDto} updateEventDto - The updated event data.
+   * @return {Promise} The updated event data.
+   */
+
+  @Patch(':id')
+  @HttpCode(201)
+  @Roles(Role.User)  
+  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+    return this.eventsService.update(+id, updateEventDto);
   }
 
   @Get()
@@ -41,7 +61,7 @@ export class EventsController {
     return this.eventsService.findByUser(userId);
   }
 
-
+//  this is is of event
   @Put('createPaymentIntent/:id')
   @Roles(Role.User)
   @HttpCode(201)
@@ -62,10 +82,6 @@ export class EventsController {
     return this.eventsService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(+id, updateEventDto);
-  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
