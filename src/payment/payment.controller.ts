@@ -22,7 +22,8 @@ export class PaymentController {
     description: "Success",
     type: EventClass,
     status: 200
-  })  create(@Body() createPayment: CreatePaymentEventDto,@Req() req: Request) {
+  })  
+  create(@Body() createPayment: CreatePaymentEventDto,@Req() req: Request) {
    
     return this.paymentService.create(createPayment);
   }

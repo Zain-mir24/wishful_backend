@@ -39,10 +39,20 @@ export class PaymentService {
         const account = await this.my_stripe.accounts.create({
           type: 'express', // or 'standard' based on your needs
           country: 'AU',
-          email: event.owner.email
+          email: event.owner.email,
+        
         });
-       
-        stripeAccount=account.id
+      //  const add_capability = await this.my_stripe.accounts.update(
+      //     account.id, // Use the ID of the created account
+      //     {
+      //       capabilities: {
+      //         transfers: { requested: true }, // Request the transfers capability
+      //       },
+      //     }
+      //   );
+
+      //   console.log(add_capability, "ADDED CAPABILITY");
+        stripeAccount=account.id;
        await this.usersService.update(event.owner.id,  {customerStripeAccountId:account.id});
        
       }else{
@@ -56,7 +66,7 @@ export class PaymentService {
 
       const transfer = await this.my_stripe.transfers.create({
         amount: Math.round(transferAmount), // in the smallest currency unit (e.g., cents)
-        currency: 'usd',
+        currency: 'aud',
         destination: stripeAccount, // connected account ID
         source_transaction: paymentIntent.latest_charge, // the original charge/payment intent
       });
@@ -139,7 +149,7 @@ export class PaymentService {
       console.log("paymentMethod",paymentMethod);
       const sendGift =
       await this.my_stripe.paymentIntents.create({
-        amount: gift_amount, // amount in cents
+        amount:Math.round(gift_amount * 100), // amount in cents
         currency: 'AUD',
         customer:customer_id,
         payment_method: paymentMethod.id,
