@@ -25,15 +25,26 @@ import { ApiResponse } from '@nestjs/swagger';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    readonly userService: UsersService,
+    private readonly userService: UsersService,
   ) {}
-
+  /**
+   * Handles user sign up by delegating to the AuthService.
+   *
+   * @param {CreateUserDto} registerUserDto - The user data to be used for sign up.
+   * @return {*} The result of the sign up operation.
+   */
   @Post('sign-up')
   @HttpCode(201)
   async signUp(@Body() registerUserDto: CreateUserDto) {
     return this.authService.signUp(registerUserDto);
   }
 
+    /**
+   * Handles user sign up confirmation by delegating to the AuthService.
+   *
+   * @param {Request} request - The HTTP request object containing the authorization token.
+   * @return {*} The result of the sign up confirmation operation.
+   */
   @Get('sign-up/confirm')
   @HttpCode(200)
   async signUpConfirm(@Req() request: Request) {
@@ -41,6 +52,12 @@ export class AuthController {
     return this.authService.verify(token);
   }
 
+    /**
+   * Handles user login by delegating to the AuthService.
+   *
+   * @param {userDto} userData - The user data to be used for login.
+   * @return {*} The result of the login operation.
+   */
   @Post('login')
   @HttpCode(200)
   @ApiResponse({ status: HttpStatus.OK, description: 'Loggedin' })

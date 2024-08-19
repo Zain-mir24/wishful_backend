@@ -97,6 +97,12 @@ export class AuthService {
         if (!customer) {
           throw new Error('Error adding user to stripe');
         }
+        const account = await stripe.accounts.create({
+          type: 'express', // or 'standard' based on your needs
+          country: 'AU',
+          email: email,
+        });
+        userData.customerStripeAccountId=account.id;
         const update = await this.usersService.update(userData.id, userData);
         //create stripe user here
 

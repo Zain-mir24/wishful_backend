@@ -48,7 +48,7 @@ export class UsersController {
       console.log("user",user);
       const {userId,...other}=user
       const getPayments=this.paymentService.findMyPayments(userId);
-      return;
+      return getPayments;
     }catch(e){
 
     }

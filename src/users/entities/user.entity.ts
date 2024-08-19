@@ -20,6 +20,9 @@ export class User {
   @Column({nullable:true})
   customer_stripe_id:string;
 
+  @Column({nullable:true})
+  customerStripeAccountId:string;
+  
   @Column()
   @Exclude()
   password: string;

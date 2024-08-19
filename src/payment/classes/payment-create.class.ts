@@ -80,3 +80,14 @@ export class GiftClass {
   @ApiProperty({ type: Number, description: 'Gift ID' })
   pid: number;
 }
+
+export class stripeIntentClass {
+  @ApiProperty({ type: String, description: 'Stripe intent ID' })
+  id: string; 
+
+  @ApiProperty({ type: String, description: 'Stripe intent client secret' })
+  client_secret: string;  
+
+  @ApiProperty({ type: String, description: 'Stripe intent customer' })
+  customer: string;
+}
