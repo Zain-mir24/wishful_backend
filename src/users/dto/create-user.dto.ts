@@ -19,5 +19,9 @@ export class CreateUserDto {
     accessToken?: string;
     @ApiProperty()
     refreshToken?: string;
+    @ApiProperty()
+    customer_stripe_id?:string;
+    @ApiProperty()
+    customerStripeAccountId?:string;
 
 }

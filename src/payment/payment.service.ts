@@ -26,6 +26,7 @@ export class PaymentService {
   async create( createPaymentDto: CreatePaymentEventDto) {
     try {
       let stripeAccount;
+      
       const { eventId, ...others } = createPaymentDto;
       const event = await this.eventRepository
         .createQueryBuilder('event')
@@ -36,62 +37,42 @@ export class PaymentService {
         throw new Error('Error finding this event');
       }
       if(!event.owner.customerStripeAccountId){
-        const account = await this.my_stripe.accounts.create({
-          type: 'express', // or 'standard' based on your needs
-          country: 'AU',
-          email: event.owner.email,
-        
-        });
-      //  const add_capability = await this.my_stripe.accounts.update(
-      //     account.id, // Use the ID of the created account
-      //     {
-      //       capabilities: {
-      //         transfers: { requested: true }, // Request the transfers capability
-      //       },
-      //     }
-      //   );
-
-      //   console.log(add_capability, "ADDED CAPABILITY");
-        stripeAccount=account.id;
-       await this.usersService.update(event.owner.id,  {customerStripeAccountId:account.id});
-       
-      }else{
-        stripeAccount=event.owner.customerStripeAccountId;
+        throw new Error("User not verified on stripe")   
       }
+      stripeAccount=event.owner.customerStripeAccountId;
+
+    
       const paymentIntent = await this.my_stripe.paymentIntents.retrieve(createPaymentDto.paymentIntentId);
       console.log("paymentIntent",paymentIntent);
       
       const transferAmount = others.gift_amount * 0.98; // Keeping 2% as your fee
 
-
       const transfer = await this.my_stripe.transfers.create({
-        amount: Math.round(transferAmount), // in the smallest currency unit (e.g., cents)
+        amount: Math.round(transferAmount * 100), // in the smallest currency unit (e.g., cents)
         currency: 'aud',
         destination: stripeAccount, // connected account ID
         source_transaction: paymentIntent.latest_charge, // the original charge/payment intent
       });
 
       console.log("Transferred the payment",transfer);
-
-      return transfer
-
-      // const payment = this.paymentRespository.create({
-      //   gift_amount: others.gift_amount,
-      //     event: event,
-      //     sender: others.userId,
-      //     gift_message: others.gift_message,
-      //     country: others.country,
-      // });   
+      const payment = this.paymentRespository.create({
+        gift_amount: others.gift_amount,
+          event: event,
+          sender: others.userId,
+          gift_message: others.gift_message,
+          country: others.country,
+      });   
 
       // // Save the event and the user to persist the changes
-      // const save_payment = await this.paymentRespository.save(payment);
+       await this.paymentRespository.save(payment);
+      
       
       return {
         status: 200,
         message: 'Payment created',
         data: event,
       };  
-
+   
     } catch (e) {
       console.log("ERROR",e);
       throw new HttpException({

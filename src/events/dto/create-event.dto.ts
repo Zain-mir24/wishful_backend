@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsUrl, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-
+import { Transform, Type } from 'class-transformer';
 export class CreateEventDto {
   @ApiProperty()
   @IsNotEmpty({ message: 'Date is required' })
@@ -13,9 +13,8 @@ export class CreateEventDto {
   readonly event_name: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Image is required' })
-  @IsString({ message: 'Image must be a string' })
-  readonly image: string;
+  
+   image: any;
 
   @ApiProperty()
   @IsNotEmpty({ message: 'Event description is required' })
@@ -28,6 +27,7 @@ export class CreateEventDto {
   readonly event_url: string;
 
   @ApiProperty()
+  @Transform(({ value }) => parseInt(value, 10))
   @IsNotEmpty({ message: 'User ID is required' })
   @IsNumber({}, { message: 'User ID must be a number' })
   userId: number;

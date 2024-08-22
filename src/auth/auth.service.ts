@@ -23,7 +23,7 @@ export class AuthService {
   async signUp(userData: CreateUserDto) {
     try {
       let user = await this.usersService.findByEmail(userData.email);
-      if(user&&!!user.verified){
+      if (user && !!user.verified) {
         throw new Error("User already exists")
       }
       const accessToken = jwt.sign(
@@ -37,19 +37,82 @@ export class AuthService {
         process.env.SECRET_REFRESH_KEY,
         { expiresIn: '17h' },
       );
+      if (user && !user.verified) {
+        const account_link = await stripe.accountLinks.create({
+          account: user.customerStripeAccountId,
+          refresh_url: 'https://example.com/reauth',
+          return_url: `http://localhost:5173/signup-verify/${accessToken}/${refreshToken}`,
+          type: 'account_onboarding',
+        });
+
+        await this.mailerService
+          .sendMail({
+            to: userData.email, // list of receivers
+            from: process.env.MY_EMAIL, // sender address
+            subject: 'Testing Nest MailerModule ✔', // Subject line
+            text: `Signup on stripe`, // plaintext body
+            html: `<a href="${account_link.url}">Click here to verify your account</a>`, // HTML body content
+          })
+          .then((r) => {
+            console.log(r, 'SEND RESPONSE');
+          })
+          .catch((e) => {
+            console.log(e, 'ERRRORR');
+          });
+          return {
+            message: 'Check email to verify your signup',
+          };
+      }
+
 
       userData.accessToken = accessToken;
+
       userData.refreshToken = refreshToken;
 
+      const customer = await stripe.customers.create({
+        name: userData.username,
+        email: userData.email,
+      });
+      
+      console.log(customer, "HERE IS THE CUSTOMER STRIPE ID");
+
+      userData.customer_stripe_id = customer.id; //this is id is to charge the customer using their debit card
+
+      const account = await stripe.accounts.create({
+        type: 'express', // or 'standard' based on your needs
+        country: 'AU',
+        email: userData.email,
+      });
+
+      const add_capability = await stripe.accounts.update(
+        account.id, // Use the ID of the created account
+        {
+          capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true }, // Request the transfers capability
+          },
+        }
+      );
+      console.log("add_capability", add_capability);
+
+      userData.customerStripeAccountId = account.id; // this id will be used to send payments to customer
+
       await this.usersService.create(userData);
+
+      const account_link = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: 'https://example.com/reauth',
+        return_url: `http://localhost:5173/signup-verify/${accessToken}/${refreshToken}`,
+        type: 'account_onboarding',
+      });
 
       await this.mailerService
         .sendMail({
           to: userData.email, // list of receivers
           from: process.env.MY_EMAIL, // sender address
           subject: 'Testing Nest MailerModule ✔', // Subject line
-          text: `Yelo apna token{accessToken}`, // plaintext body
-          html: `<a href="http://localhost:5173/signup-verify/${accessToken}/${refreshToken}">Click here to verify your account</a>`, // HTML body content
+          text: `Signup on stripe`, // plaintext body
+          html: `<a href="${account_link.url}">Click here to verify your account</a>`, // HTML body content
         })
         .then((r) => {
           console.log(r, 'SEND RESPONSE');
@@ -88,23 +151,9 @@ export class AuthService {
       }
       if (verify) {
         userData.verified = true;
-        const customer = await stripe.customers.create({
-          name: userData.username,
-          email: email,
-        });
-        console.log(customer, "HERE IS THE CUSTOMER STRIPE ID")
-        userData.customer_stripe_id = customer.id;
-        if (!customer) {
-          throw new Error('Error adding user to stripe');
-        }
-        const account = await stripe.accounts.create({
-          type: 'express', // or 'standard' based on your needs
-          country: 'AU',
-          email: email,
-        });
-        userData.customerStripeAccountId=account.id;
+       
+      
         const update = await this.usersService.update(userData.id, userData);
-        //create stripe user here
 
         if (!update) {
           throw new Error('Error updating data');

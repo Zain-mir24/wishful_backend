@@ -1,6 +1,5 @@
 var dotenvExpand = require('dotenv-expand');
 export const myENV = require('dotenv').config();
-var dotenvExpand = require('dotenv-expand');
 var parse = require('pg-connection-string').parse;
 export const myvalue = dotenvExpand.expand(myENV).parsed;
 export const connectionOptions = parse(process.env.POSTGRES_URL);
@@ -14,7 +13,6 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentModule } from './payment/payment.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { MailingService } from './mailing/mailing.service';
 import { LoggerMiddleware } from './common/middleware/login.middleware';
 import { RolesGuard } from './common/guard/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -22,6 +20,8 @@ import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 import { ScheduleModule } from "@nestjs/schedule";
+import { S3Service } from './utils/s3.service';
+
 @Module({
   imports: [
 
@@ -58,11 +58,10 @@ import { ScheduleModule } from "@nestjs/schedule";
   controllers: [AppController],
   providers: [
     AppService,
-    MailingService,
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
-    },
+    }
   ],
 })
 export class AppModule {

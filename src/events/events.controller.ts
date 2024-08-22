@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, ClassSerializerInterceptor, UseInterceptors, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, ClassSerializerInterceptor, UseInterceptors, Put,UploadedFiles, UploadedFile } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -10,12 +10,18 @@ import { ApiResponse } from '@nestjs/swagger';
 import { TEvent } from 'src/interfaces/event.types';
 import { EventClass } from './classes/event.class';
 import { CreateGiftDto } from 'src/payment/dto/create-payment-intent.dto';
-
+import { stripeIntentClass } from 'src/payment/classes/payment-create.class';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { ParseFilesPipeCutsom } from 'src/custom-pipe/parse-file.pipe';
+import { S3Service } from 'src/utils/s3.service';
 @Controller('events')
 @UseInterceptors(ClassSerializerInterceptor)
 
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly s3Service:S3Service)
+     {}
 
   /**
  * Creates a new event.
@@ -26,8 +32,13 @@ export class EventsController {
   @Post()
   @HttpCode(201)
   @Roles(Role.User)
+  @UseInterceptors(
+    FileInterceptor('image'))
+  async create(@UploadedFile()
+  file: Express.Multer.File, @Body() createEventDto: CreateEventDto ) {
 
-  create(@Body() createEventDto: CreateEventDto) {
+      const image = await this.s3Service.uploadDocument(file);
+      createEventDto.image = image
     return this.eventsService.create(createEventDto);
   }
     /**
@@ -41,7 +52,13 @@ export class EventsController {
   @Patch(':id')
   @HttpCode(201)
   @Roles(Role.User)  
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+  @UseInterceptors(
+    FileInterceptor('image'))
+  async update(@Param('id') id: string, @UploadedFile()
+  file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto) {
+    if(file){
+    const image = await this.s3Service.uploadDocument(file);
+    updateEventDto.image = image}
     return this.eventsService.update(+id, updateEventDto);
   }
 
@@ -65,6 +82,11 @@ export class EventsController {
   @Put('createPaymentIntent/:id')
   @Roles(Role.User)
   @HttpCode(201)
+  @ApiResponse({
+    description: "Success",
+    type:  stripeIntentClass, 
+    status: 200
+  })
   async createPaymentIntent(@Param('id') id: number, @Req() request: Request,@Body () body:CreateGiftDto) {
     
     return this.eventsService.createPaymentIntent(id,body);

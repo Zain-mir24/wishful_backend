@@ -23,6 +23,8 @@ export class UsersService {
       email,
       accessToken,
       refreshToken,
+      customerStripeAccountId,
+      customer_stripe_id
     } = createUserDto;
 
     const checkEmail = await this.userRepository.findOne({
@@ -63,6 +65,8 @@ export class UsersService {
       user.accessToken = accessToken;
 
       user.refreshToken = refreshToken;
+      user.customerStripeAccountId=customerStripeAccountId;
+      user.customer_stripe_id=customer_stripe_id
 
       const myUser = await this.userRepository.save(user);
 
