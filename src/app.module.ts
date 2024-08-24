@@ -20,7 +20,6 @@ import { EventsModule } from './events/events.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 import { ScheduleModule } from "@nestjs/schedule";
-import { S3Service } from './utils/s3.service';
 
 @Module({
   imports: [
