@@ -8,12 +8,15 @@ const databaseHost =myvalue.DB_HOST;
 const databasePort = myvalue.DB_PORT;
 const databaseType=myvalue.DB_TYPE;
 
+console.log(connectionOptions)
+console.log(myvalue)
 
 //host:databaseHost|| connectionOptions.host,
 // port:databasePort|| connectionOptions.port,
 // username:databaseUsername|| connectionOptions.user,
 // password: databasePassword||connectionOptions.password,
 // database: databaseName||connectionOptions.database,
+
 export const typeOrmConfig: TypeOrmModuleOptions = {
   type: databaseType,
   host:connectionOptions.host,
