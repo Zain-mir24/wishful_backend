@@ -11,8 +11,8 @@ import { TEvent } from 'src/interfaces/event.types';
 import { EventClass } from './classes/event.class';
 import { CreateGiftDto } from 'src/payment/dto/create-payment-intent.dto';
 import { stripeIntentClass } from 'src/payment/classes/payment-create.class';
-import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { ParseFilesPipeCutsom } from 'src/custom-pipe/parse-file.pipe';
+import {  FileInterceptor } from '@nestjs/platform-express';
+import { PaymentService } from 'src/payment/payment.service';
 import { S3Service } from 'src/utils/s3.service';
 @Controller('events')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -20,6 +20,7 @@ import { S3Service } from 'src/utils/s3.service';
 export class EventsController {
   constructor(
     private readonly eventsService: EventsService,
+    private readonly paymentService:PaymentService,
     private readonly s3Service:S3Service)
      {}
 
@@ -91,6 +92,23 @@ export class EventsController {
     
     return this.eventsService.createPaymentIntent(id,body);
   }
+  /**
+   * Finds all payments made against an event
+   * @param id The ID of the event to find payments for
+   * @returns An array of payments made against the event
+   */
+
+  @Get(':id/list-payments')
+  @Roles(Role.User)
+  @HttpCode(200)
+  @ApiResponse({
+    description: "Successfully got all payments against event",
+    status: 200
+  })
+  async findAllPaymentsForEvent(@Param('id') id: number) {
+    return this.paymentService.findAllPaymentsForEvent(id);
+  }
+
 
   @Get(':id')
   @Roles(Role.User)

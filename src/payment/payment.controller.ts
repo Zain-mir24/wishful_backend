@@ -25,8 +25,7 @@ export class PaymentController {
     status: 200
   })  
   create(@Body() createPayment: CreatePaymentEventDto,@Req() req: Request) {
-   
-    return this.paymentService.create(createPayment);
+       return this.paymentService.create(createPayment);
   }
 
   @Post('clearPayment')
@@ -39,6 +38,13 @@ export class PaymentController {
     return this.paymentService.findAll();
   }
 
+
+  /**
+  * Finds all payments made by the user with the given userId
+  * @param req The current request object
+  * @returns An array of payments made by the user
+  */
+
   @Get('totalRecievedAmount')
   @Roles(Role.User)
   @HttpCode(200)
@@ -46,6 +52,7 @@ export class PaymentController {
     description: "total gift amount",
     status: 200
   })
+
   findMyPayments(@Req() req: Request) {
 
     const user = req['user'];
@@ -54,6 +61,24 @@ export class PaymentController {
     const getPayments = this.paymentService.findMyPayments(userId);
     return getPayments;
   }
+
+  /**
+   * Finds the gift details for the reciever with the given id
+   * @param id The id of the payment to find the gift details for
+   * @returns A promise that resolves with an object containing a success message, a status code, 
+   *   and the payment data, including the event data
+   */
+  @Get(':id/event-details')
+  @Roles(Role.User)
+  @HttpCode(200)
+  @ApiResponse({
+    description: "Giftdetails for reciever",
+    status: 200
+  })
+  findGiftDetailsForReciever(@Param('id') id: number) {
+    return this.paymentService.findGiftDetailsForReciever(id);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

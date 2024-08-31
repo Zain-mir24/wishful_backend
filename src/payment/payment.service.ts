@@ -7,13 +7,14 @@ import { Payment } from './entities/payment.entity';
 import { TEvent } from 'src/interfaces/event.types';
 import { Event as newEvent } from 'src/events/entities/event.entity';
 import { UsersService } from 'src/users/users.service';
-import { Cron, SchedulerRegistry, Interval } from '@nestjs/schedule';
+import { S3Service } from 'src/utils/s3.service';
 // import {Stripe as stripetype} from 'stripe'
 @Injectable()
 export class PaymentService {
   private my_stripe;
   constructor(
     private readonly usersService: UsersService,
+    private readonly s3Service: S3Service,
 
     @InjectRepository(Event)
     private readonly eventRepository: Repository<newEvent>,
@@ -204,11 +205,7 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Finds all payments made by the user with the given userId
-   * @param userId the id of the user to find payments for
-   * @returns an array of payments made by the user
-   */
+
   async findMyPayments(userId: number) {
     try {
       const payments = await this.paymentRepository
@@ -235,6 +232,64 @@ export class PaymentService {
       });
     }
   }
+
+  async findAllPaymentsForEvent(id: number) {
+    try {
+      // Find the event by ID and load related payments
+      const payments = await this.paymentRepository.find({
+        where: { event: { eid: id } },
+      });
+      let paymentsWithUsers = []
+      // Fetch user details for each payment
+      for (const payment of payments) {
+        const user = await this.usersService.findOne(payment.sender);
+        const { id, email, username } = user;
+        paymentsWithUsers.push({
+          ...payment,
+          sender: {
+            id, email, username
+          },
+        });
+      }
+      return {status:200,data:paymentsWithUsers,message:"success"}
+    }catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: error.message,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: error
+      });
+    }
+  }
+
+
+
+  async findGiftDetailsForReciever(id: number) {
+    try {
+      // Find the event by ID and load related payments
+      const payment = await this.paymentRepository.findOne({
+        where: { pid: id },
+        relations: ['event'], // Populate event data
+      });
+
+      const generateImageUrl = await this.s3Service.generateSignedUrl(payment.event.image);
+
+      delete payment.event.image
+      payment.event.image = generateImageUrl;
+
+      return { status: 200, data: payment, message: "success" }
+
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: error.message,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: error
+      });
+    }
+
+  }
+
   findAll() {
     return `This action returns all payment`;
   }

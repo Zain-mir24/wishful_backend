@@ -6,9 +6,11 @@ import { User } from './entities/user.entity';
 import { Event } from 'src/events/entities/event.entity';
 import { PaymentService } from 'src/payment/payment.service';
 import { Payment } from 'src/payment/entities/payment.entity';
+import { S3Service } from 'src/utils/s3.service';
+import { ConfigService } from '@nestjs/config';
 @Module({
   imports:[TypeOrmModule.forFeature([User,Event,Payment])],
   controllers: [UsersController],
-  providers: [UsersService,PaymentService],
+  providers: [UsersService,PaymentService,S3Service,ConfigService],
 })
 export class UsersModule {}
