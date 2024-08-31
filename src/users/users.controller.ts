@@ -39,22 +39,6 @@ export class UsersController {
     return this.usersService.findAll(pageOptionsDto);
   }
 
-  @Get('/me/gifts')
-  @Roles(Role.User)
-  @HttpCode(200)
-  findMyPayments(@Req() req: Request){
-    try{
-      const user = req['user'];
-      console.log("user",user);
-      const {userId,...other}=user
-      const getPayments=this.paymentService.findMyPayments(userId);
-      return getPayments;
-    }catch(e){
-
-    }
-    
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);

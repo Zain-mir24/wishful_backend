@@ -13,7 +13,8 @@ import { ApiResponse } from '@nestjs/swagger';
 import { EventClass } from './classes/payment-create.class';
 @Controller('payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(private readonly paymentService: PaymentService,
+  ) {}
 
   @Post()
   @Roles(Role.User)
@@ -36,6 +37,22 @@ export class PaymentController {
   @Get()
   findAll() {
     return this.paymentService.findAll();
+  }
+
+  @Get('totalRecievedAmount')
+  @Roles(Role.User)
+  @HttpCode(200)
+  @ApiResponse({
+    description: "total gift amount",
+    status: 200
+  })
+  findMyPayments(@Req() req: Request) {
+
+    const user = req['user'];
+    console.log("user", user);
+    const { userId, ...other } = user
+    const getPayments = this.paymentService.findMyPayments(userId);
+    return getPayments;
   }
 
   @Get(':id')

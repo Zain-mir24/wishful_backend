@@ -23,7 +23,6 @@ export class CreateEventDto {
 
   @ApiProperty()
   @IsNotEmpty({ message: 'Event URL is required' })
-  @IsUrl({}, { message: 'Event URL must be a valid URL' })
   readonly event_url: string;
 
   @ApiProperty()

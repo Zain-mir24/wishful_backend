@@ -14,10 +14,11 @@ export class PaymentService {
   private my_stripe;
   constructor(
     private readonly usersService: UsersService,
+
     @InjectRepository(Event)
     private readonly eventRepository: Repository<newEvent>,
     @InjectRepository(Payment)
-    private readonly paymentRespository: Repository<Payment>,
+    private readonly paymentRepository: Repository<Payment>,
   ) {
     this.my_stripe = require('stripe')(process.env.STRIPE_KEY);
   }
@@ -55,7 +56,7 @@ export class PaymentService {
       });
 
       console.log("Transferred the payment",transfer);
-      const payment = this.paymentRespository.create({
+      const payment = this.paymentRepository.create({
         gift_amount: others.gift_amount,
           event: event,
           sender: others.userId,
@@ -64,7 +65,7 @@ export class PaymentService {
       });   
 
       // // Save the event and the user to persist the changes
-       await this.paymentRespository.save(payment);
+       await this.paymentRepository.save(payment);
       
       
       return {
@@ -154,58 +155,7 @@ export class PaymentService {
         data: clientSecret,
         status: 200,
       };
-//       const paymentMethodInfo = await this.my_stripe.paymentMethods.retrieve(paymentMethod.id);
-// console.log(paymentMethodInfo);
-//       if (paymentIntent.status === 'succeeded') {
-//         console.log('Payment succeeded:', paymentIntent);
-//       } else {
-//         console.error('Payment failed:', paymentIntent.status);
-//       }
-     
 
- // // Current date and time
-      // const currentDate = new Date();
-
-   
-
-      // const setupIntent = await this.my_stripe.setupIntents.create({
-      //   customer: customer_id,
-      //   payment_method: paymentMethod.id,
-      //   automatic_payment_methods: {
-      //     enabled: true,
-      //     allow_redirects: 'never',
-      //   },
-      // });
-   
-
-      // const create_payment = await this.paymentRespository.create({
-      //   setup_intent: setupIntent.id,
-      //   amount: createPaymentDto.gift_amount,
-      //   event: check_event,
-      //   sender: id,
-      //   gift_message: createPaymentDto.gift_message,
-      //   country: createPaymentDto.country,
-      // });
-
-      // console.log(create_payment);
-
-      // const save_payment = await this.paymentRespository.save(create_payment);
-
-      // if (currentDate === check_event['date']) {
-      //   // make an instanct payment
-      //   // return check_event
-      //   //Immediate payment for this customer
-
-      //   const createpayment = await this.my_stripe.paymentIntents.create({
-      //     amount: createPaymentDto.gift_amount, // amount in cents
-      //     currency: 'usd',
-      //     payment_method_types: ['card'],
-      //     customer: 'customerId',
-      //     confirm: true, // Do not confirm the payment intent immediately
-      //   });
-      //   return createpayment;
-
-      // }
     } catch (e) {
       console.log(e);
       throw new HttpException(
@@ -220,10 +170,10 @@ export class PaymentService {
       );
     }
   }
-  @Interval(24 * 60 * 60 * 1000) // 24 hours in milliseconds
+  // @Interval(24 * 60 * 60 * 1000) // 24 hours in milliseconds
   async clearPayment() {
     try {
-      const list_payment = await this.paymentRespository
+      const list_payment = await this.paymentRepository
         .createQueryBuilder('payment')
         .leftJoinAndSelect('payment.event', 'event')
         .getMany();
@@ -242,27 +192,7 @@ export class PaymentService {
               current_date.setHours(0, 0, 0, 0);
               payment_data.setHours(0, 0, 0, 0);
 
-              // if (current_date.getTime() === payment_data.getTime()) {
-              //   const retrieve_intent =
-              //     await this.my_stripe.setupIntents.retrieve(item.setup_intent);
-              //   const retrieve_paymentMethod =
-              //     await this.my_stripe.paymentMethods.retrieve(
-              //       retrieve_intent.payment_method,
-              //     );
-              //   const createpayment =
-              //     await this.my_stripe.paymentIntents.create({
-              //       amount: item.amount, // amount in cents
-              //       currency: 'usd',
-              //       payment_method: retrieve_paymentMethod.id,
-              //       customer: retrieve_paymentMethod.customer,
-              //       automatic_payment_methods: {
-              //         enabled: true,
-              //         allow_redirects: 'never',
-              //       },
-              //       confirm: true, // Do not confirm the payment intent immediately
-              //     });
-              //   return { retrieve_paymentMethod, list_payment, createpayment };
-              // }
+            
               return item;
             },
           ),
@@ -274,8 +204,36 @@ export class PaymentService {
     }
   }
 
-  async findMyPayments(id:number){
+  /**
+   * Finds all payments made by the user with the given userId
+   * @param userId the id of the user to find payments for
+   * @returns an array of payments made by the user
+   */
+  async findMyPayments(userId: number) {
+    try {
+      const payments = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .innerJoinAndSelect('payment.event', 'event')
+      .where('event.userId = :userId', { userId})
+      .getMany();
 
+      // Sum all the gift_amount values
+      const totalGiftAmount = payments.reduce((sum, payment) => sum + payment.gift_amount, 0);
+      return {
+        message: 'total gift amount',
+        data: totalGiftAmount,
+        status: 200,
+      };
+
+    } catch (e) {
+      console.log("ERROR",e);
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: e.message,
+      }, HttpStatus.BAD_REQUEST, {
+        cause: e
+      });
+    }
   }
   findAll() {
     return `This action returns all payment`;

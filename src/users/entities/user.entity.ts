@@ -36,7 +36,6 @@ export class User {
   @Column()
   refreshToken?: string;
 
-   
 
   @OneToMany(() => Event, event => event.owner,{ cascade: true })
   events: Event[];

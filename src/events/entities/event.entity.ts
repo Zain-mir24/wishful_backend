@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   JoinColumn,
-  OneToOne,
+  OneToMany,
   ManyToOne,
 } from 'typeorm';
 import { SerializeOptions } from '@nestjs/common/serializer';
@@ -39,6 +39,9 @@ export class Event {
   @JoinColumn({name:"userId",referencedColumnName: 'id'})
   owner:User;
 
+  // Add this to establish a relationship with Payment entity
+  @OneToMany(() => Payment, payment => payment.event)
+  payments: Payment[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
