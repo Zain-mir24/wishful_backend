@@ -78,10 +78,31 @@ export class AuthController {
   }
 
   @Post("update-password")
+  @HttpCode(200)
   @ApiResponse({ status: HttpStatus.OK, description: 'Password updated'})
-  updatePassword(@Req() request:Request){
-
+  updatePassword(@Req() request:Request,@Body() updateAuthDto:UpdateAuthDto) {
+    const user = request['user'];
+    const {userId,...other}=user;
+    return this.authService.updatePassword(userId, updateAuthDto);
   }
+
+
+ /**
+   * Handles forgot password by sending a reset password link to the user
+   *
+   * @param {Request} request - The request object
+   * @param {object} updateAuthDto - The update auth dto
+   * @return {*} The result of the forgot password operation
+   */
+  @Post("forgot-password")
+  @HttpCode(200)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Password reset email sent'})
+ 
+  forgotPassword(@Body() updateAuthDto:{email:string}) {
+
+    return this.authService.resetPassword(updateAuthDto.email);
+  }
+
 
   @Get()
   findAll() {

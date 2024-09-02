@@ -1,11 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { userDto } from './dto/user-login.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import * as jwt from 'jsonwebtoken';
-
+import { v4 as uuidv4 } from 'uuid';
 import { MailerService } from '@nestjs-modules/mailer';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Exception } from 'handlebars';
@@ -252,6 +252,82 @@ export class AuthService {
     } catch (e) {
       return e;
     }
+  }
+
+
+
+  async updatePassword(userId: number, updatePasswordDto: UpdateAuthDto) {
+    try{
+      const { currentPassword, newPassword } = updatePasswordDto;
+
+      const user = await this.usersService.findOne(userId);
+  
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Current password is incorrect.');
+      }
+  
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.usersService.update(userId, {password:hashedPassword});
+  
+      return {
+        message: 'Password updated successfully.',
+        status: HttpStatus.CREATED
+      };
+    }catch(e){
+      throw new HttpException(
+        {
+          status: e.status||HttpStatus.BAD_REQUEST,
+          error: e.message || e,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+ 
+    
+}
+
+  async resetPassword(email: string) {
+    try {
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        throw new NotFoundException('User with this email does not exist.');
+      }
+
+      const temporaryPassword = uuidv4();  // Generate a temporary password (could be more complex)
+      const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+
+      await this.usersService.update(user.id, {password:hashedPassword});
+
+      // Send the temporary password to the user's email
+      // You can implement an email service to handle the email sending.
+      await this.mailerService
+      .sendMail({
+        to: email, // list of receivers
+        from: process.env.MY_EMAIL, // sender address
+        subject: 'Testing Nest MailerModule ✔', // Subject line
+        text: `Password reset`, // plaintext body
+        html: `<p> Here is your updated temp password ${temporaryPassword}</a>`, // HTML body content
+      })
+      .then((r) => {
+        console.log(r, 'SEND RESPONSE');
+      })
+      .catch((e) => {
+        console.log(e, 'ERRRORR');
+      });
+
+      return { message: 'Temporary password has been sent to your email.' };
+    } catch (e) {
+      console.log("EERROR",e)
+      throw new HttpException(
+        {
+          status: e.status || HttpStatus.BAD_REQUEST,
+          error: e.message || e,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
   }
 
   findAll() {

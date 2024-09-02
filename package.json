@@ -44,7 +44,8 @@
     "sendmail": "^1.6.1",
     "socket.io": "^4.7.4",
     "stripe": "^15.1.0",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

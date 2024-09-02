@@ -24,8 +24,8 @@ export class CreatePaymentEventDto {
     userId: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'User ID is required' })
-    @IsNumber({}, { message: 'User ID must be a number' })
+    @IsNotEmpty({ message: 'event ID is required' })
+    @IsNumber({}, { message: 'event ID must be a number' })
     eventId: number;
 
     @ApiProperty()

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -17,6 +17,7 @@ export class EventsService {
   constructor(
 
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => PaymentService))
     private readonly paymentService: PaymentService,
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,

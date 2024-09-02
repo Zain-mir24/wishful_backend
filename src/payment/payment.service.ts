@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreatePaymentEventDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { TEvent } from 'src/interfaces/event.types';
 import { Event as newEvent } from 'src/events/entities/event.entity';
 import { UsersService } from 'src/users/users.service';
 import { S3Service } from 'src/utils/s3.service';
+import { EventsService } from 'src/events/events.service';
 // import {Stripe as stripetype} from 'stripe'
 @Injectable()
 export class PaymentService {
@@ -15,7 +16,9 @@ export class PaymentService {
   constructor(
     private readonly usersService: UsersService,
     private readonly s3Service: S3Service,
-
+    @Inject(forwardRef(() => EventsService))
+    private readonly eventsService: EventsService,
+    
     @InjectRepository(Event)
     private readonly eventRepository: Repository<newEvent>,
     @InjectRepository(Payment)
@@ -58,7 +61,7 @@ export class PaymentService {
 
       console.log("Transferred the payment",transfer);
       const payment = this.paymentRepository.create({
-        gift_amount: others.gift_amount,
+        gift_amount: Math.round(transferAmount),
           event: event,
           sender: others.userId,
           gift_message: others.gift_message,
@@ -67,8 +70,10 @@ export class PaymentService {
 
       // // Save the event and the user to persist the changes
        await this.paymentRepository.save(payment);
-      
-      
+      // update event amount collected
+       await  this.eventsService.update(eventId,{
+         amount_collected:event.amount_collected+others.gift_amount
+       })
       return {
         status: 200,
         message: 'Payment created',
@@ -209,16 +214,24 @@ export class PaymentService {
   async findMyPayments(userId: number) {
     try {
       const payments = await this.paymentRepository
-      .createQueryBuilder('payment')
-      .innerJoinAndSelect('payment.event', 'event')
-      .where('event.userId = :userId', { userId})
-      .getMany();
+        .createQueryBuilder('payment')
+        .innerJoinAndSelect('payment.event', 'event')
+        .where('event.userId = :userId', { userId })
+        .getMany();
 
       // Sum all the gift_amount values
       const totalGiftAmount = payments.reduce((sum, payment) => sum + payment.gift_amount, 0);
+      
+      const paymentSent = await this.paymentRepository
+        .createQueryBuilder('payment')
+        .where('payment.sender = :userId', { userId })
+        .getMany();
+
+      const totalSentGiftAmount = paymentSent.reduce((sum, payment) => sum + payment.gift_amount, 0);
+
       return {
         message: 'total gift amount',
-        data: totalGiftAmount,
+        data: { totalGiftAmount, totalGifts: payments.length, totalSentGiftAmount, totalSentGifts: paymentSent.length },
         status: 200,
       };
 
