@@ -50,11 +50,12 @@ export class PaymentService {
       const paymentIntent = await this.my_stripe.paymentIntents.retrieve(createPaymentDto.paymentIntentId);
       console.log("paymentIntent", paymentIntent);
 
-      const transferAmount = others.gift_amount * 0.98; // Keeping 2% as your fee
-
-      
+    
+      // Calculate the amount after deducting the platform fee and ensure it's in integer form
+      const transferAmount = Math.floor(others.gift_amount * (1 - 0.02));
+            
       const payment = this.paymentRepository.create({
-        gift_amount: transferAmount,
+        gift_amount: Math.floor(transferAmount),
         event: event,
         sender: others.userId,
         gift_message: others.gift_message,
