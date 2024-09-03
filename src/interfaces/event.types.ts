@@ -3,6 +3,7 @@ interface User {
     username: string;
     email: string;
     customer_stripe_id?: string;
+    customerStripeAccountId?:string;
     verified: boolean;
     accessToken?: string;
     refreshToken?: string;

@@ -28,10 +28,10 @@ export class PaymentService {
   }
 
 
-  async create( createPaymentDto: CreatePaymentEventDto) {
+  async create(createPaymentDto: CreatePaymentEventDto) {
     try {
       let stripeAccount;
-      
+
       const { eventId, ...others } = createPaymentDto;
       const event = await this.eventRepository
         .createQueryBuilder('event')
@@ -41,47 +41,40 @@ export class PaymentService {
       if (!event) {
         throw new Error('Error finding this event');
       }
-      if(!event.owner.customerStripeAccountId){
-        throw new Error("User not verified on stripe")   
+      if (!event.owner.customerStripeAccountId) {
+        throw new Error("User not verified on stripe");
       }
-      stripeAccount=event.owner.customerStripeAccountId;
+      stripeAccount = event.owner.customerStripeAccountId;
 
-    
+
       const paymentIntent = await this.my_stripe.paymentIntents.retrieve(createPaymentDto.paymentIntentId);
-      console.log("paymentIntent",paymentIntent);
-      
+      console.log("paymentIntent", paymentIntent);
+
       const transferAmount = others.gift_amount * 0.98; // Keeping 2% as your fee
 
-      const transfer = await this.my_stripe.transfers.create({
-        amount: Math.round(transferAmount * 100), // in the smallest currency unit (e.g., cents)
-        currency: 'aud',
-        destination: stripeAccount, // connected account ID
-        source_transaction: paymentIntent.latest_charge, // the original charge/payment intent
+      
+      const payment = this.paymentRepository.create({
+        gift_amount: transferAmount,
+        event: event,
+        sender: others.userId,
+        gift_message: others.gift_message,
+        country: others.country,
       });
 
-      console.log("Transferred the payment",transfer);
-      const payment = this.paymentRepository.create({
-        gift_amount: Math.round(transferAmount),
-          event: event,
-          sender: others.userId,
-          gift_message: others.gift_message,
-          country: others.country,
-      });   
-
       // // Save the event and the user to persist the changes
-       await this.paymentRepository.save(payment);
+      await this.paymentRepository.save(payment);
       // update event amount collected
-       await  this.eventsService.update(eventId,{
-         amount_collected:event.amount_collected+others.gift_amount
-       })
+      await this.eventsService.update(eventId, {
+        amount_collected: event.amount_collected + transferAmount
+      })
       return {
         status: 200,
         message: 'Payment created',
         data: event,
-      };  
-   
+      };
+
     } catch (e) {
-      console.log("ERROR",e);
+      console.log("ERROR", e);
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
         error: e.message,
@@ -135,9 +128,13 @@ export class PaymentService {
         },
       );
       console.log("paymentMethod",paymentMethod);
+
+      const giftAmountInCents = Math.round(gift_amount * 100);
+      const platformFee = Math.round(gift_amount * 0.02 * 100); // 2% platform fee
+
       const sendGift =
       await this.my_stripe.paymentIntents.create({
-        amount:Math.round(gift_amount * 100), // amount in cents
+        amount:giftAmountInCents, // amount in cents
         currency: 'AUD',
         customer:customer_id,
         payment_method: paymentMethod.id,
@@ -145,10 +142,16 @@ export class PaymentService {
         automatic_payment_methods: {
           enabled: true,
           allow_redirects: 'never',
-        }      
+        },
+        transfer_data:{
+          destination:check_event.owner.customerStripeAccountId
+        },
+         application_fee_amount:platformFee,
       });
 
       console.log("sendGift",sendGift);
+
+
       const { client_secret,id,customer } = sendGift;
       const clientSecret={
         id,
