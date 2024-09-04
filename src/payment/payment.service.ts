@@ -130,25 +130,27 @@ export class PaymentService {
       );
       console.log("paymentMethod",paymentMethod);
 
-      const giftAmountInCents = Math.round(gift_amount * 100);
-      const platformFee = Math.round(gift_amount * 0.02 * 100); // 2% platform fee
-
-      const sendGift =
-      await this.my_stripe.paymentIntents.create({
-        amount:giftAmountInCents, // amount in cents
+      const giftAmountInCents = Math.round(gift_amount * 100); // The actual gift amount in cents (e.g., $100 -> 10000 cents)
+      
+      const platformFee = Math.round(giftAmountInCents * 0.07); // 7% platform fee (e.g., $100 -> $2 -> 200 cents)
+      
+      const sendGift = await this.my_stripe.paymentIntents.create({
+        amount: giftAmountInCents, // The total amount charged to the customer (e.g., 10500 cents)
         currency: 'AUD',
-        customer:customer_id,
+        customer: customer_id,
         payment_method: paymentMethod.id,
-        confirm: true, // Do not confirm the payment intent immediately, 
+        confirm: true,
         automatic_payment_methods: {
           enabled: true,
           allow_redirects: 'never',
         },
-        transfer_data:{
-          destination:check_event.owner.customerStripeAccountId
+        transfer_data: {
+          destination: check_event.owner.customerStripeAccountId, // Transfer to the connected account
         },
-         application_fee_amount:platformFee,
+        application_fee_amount: platformFee // Platform fee (e.g., 200 cents)
       });
+
+
 
       console.log("sendGift",sendGift);
 
