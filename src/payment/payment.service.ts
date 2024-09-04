@@ -132,7 +132,7 @@ export class PaymentService {
 
       const giftAmountInCents = Math.round(gift_amount * 100); // The actual gift amount in cents (e.g., $100 -> 10000 cents)
       
-      const platformFee = Math.round(giftAmountInCents * 0.07); // 7% platform fee (e.g., $100 -> $2 -> 200 cents)
+      const platformFee = Math.round(giftAmountInCents * 0.07); // 7% platform fee (e.g., $100 -> $7 -> 700 cents)
       
       const sendGift = await this.my_stripe.paymentIntents.create({
         amount: giftAmountInCents, // The total amount charged to the customer (e.g., 10500 cents)
