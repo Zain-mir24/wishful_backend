@@ -9,6 +9,7 @@ import { Event as newEvent } from 'src/events/entities/event.entity';
 import { UsersService } from 'src/users/users.service';
 import { S3Service } from 'src/utils/s3.service';
 import { EventsService } from 'src/events/events.service';
+import * as moment from 'moment';
 // import {Stripe as stripetype} from 'stripe'
 @Injectable()
 export class PaymentService {
@@ -112,10 +113,20 @@ export class PaymentService {
         .where('event.eid = :eventId', { eventId: eventId})
         .getOne();
 
-      console.log(check_event);
+      console.log("check_event.created_at",check_event.created_at);
 
       if (!check_event) {
         throw new Error('Error finding this event');
+      }
+      // Get the current date minus 7 days
+      const sevenDaysAgo = moment().subtract(7, 'days');
+
+      // Ensure created_at is correctly parsed
+      const eventCreatedAt = moment(check_event.created_at, 'YYYY-MM-DD HH:mm:ss.SSSSSS');
+
+      // Check if created_at is greater than seven days ago
+      if (eventCreatedAt.isAfter(sevenDaysAgo)) {
+        throw new Error('Event was created more than the last 7 days');
       }
       const new_payment = await this.my_stripe.paymentMethods.create({
         type: 'card',

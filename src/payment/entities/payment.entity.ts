@@ -1,5 +1,5 @@
 
-import { PrimaryGeneratedColumn ,Column,Entity,OneToOne,JoinColumn, ManyToOne} from "typeorm";
+import { PrimaryGeneratedColumn ,Column,Entity,OneToOne,JoinColumn, ManyToOne, CreateDateColumn} from "typeorm";
 import { Event } from "src/events/entities/event.entity";
 import { User } from "src/users/entities/user.entity";
 import { isString } from "class-validator";
@@ -24,4 +24,9 @@ export class Payment {
     @ManyToOne(() => Event) // Define Many-to-one relationship with Event entity
     @JoinColumn({ name: "eventId",referencedColumnName:"eid" })
     event: Event;
+
+     // Automatically set the current date and time when the entity is created
+     @CreateDateColumn({ type: 'timestamp' ,nullable:true})
+     created_at: Date;
+ 
 }
